@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAZE SOLVER — BFS / A*</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #2d353b;
+      --surface: #343f44;
+      --border: #475258;
+      --dim: #232a2e;
+      --wall: #56635f;
+      --wall-glow: #475258;
+      --empty: #2d353b;
+      --start: #39deff;
+      --end: #ff0d11;
+      --visited-bfs: #ea0436;
+      --visited-a: #4b3a41;
+      --frontier: #7fbbb3;
+      --path: #00ccfa;
+      --text: #d3c6aa;
+      --accent: #7fbbb3;
+      --green: #a7c080;
+      --red: #e67e80;
+      --yellow: #dbbc7f;
+      --purple: #d699b6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 12px;
+      overflow-x: hidden;
+    }
+
+    /* === SCANLINE EFFECT === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* === HEADER === */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      letter-spacing: .15em;
+      color: var(--accent);
+      text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo span {
+      color: var(--green);
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      font-size: .75rem;
+      letter-spacing: .3em;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    @keyframes flicker {
+
+      0%,
+      95%,
+      100% {
+        opacity: 1;
+      }
+
+      96% {
+        opacity: .85;
+      }
+
+      97% {
+        opacity: 1;
+      }
+
+      98% {
+        opacity: .9;
+      }
+    }
+
+    /* === LAYOUT === */
+    .app {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* === PANEL === */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px;
+      position: relative;
+      box-shadow: 4px 4px 0px var(--dim);
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', monospace;
+      font-size: .65rem;
+      letter-spacing: .25em;
+      color: var(--accent);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    /* === CONTROLS === */
+    .controls {
+      width: 220px;
+      flex-shrink: 0;
+    }
+
+    .section {
+      margin-bottom: 18px;
+    }
+
+    .section-label {
+      font-size: .65rem;
+      letter-spacing: .15em;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* Algorithm toggle */
+    .algo-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .algo-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: 1px solid var(--border);
+      background: var(--dim);
+      color: #859289;
+      font-family: 'Orbitron', monospace;
+      font-size: .6rem;
+      letter-spacing: .1em;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all .2s;
+    }
+
+    .algo-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .algo-btn.active {
+      border-color: var(--accent);
+      background: rgba(127, 187, 179, .1);
+      color: var(--accent);
+    }
+
+    .algo-btn.active.a-star {
+      border-color: var(--purple);
+      background: rgba(214, 153, 182, .1);
+      color: var(--purple);
+    }
+
+    /* Tool buttons */
+    .tool-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .tool-btn {
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: var(--dim);
+      color: #859289;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tool-btn:hover {
+      border-color: #3a5a80;
+      color: var(--text);
+    }
+
+    .tool-btn.active {
+      background: rgba(127, 187, 179, .15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tool-btn.active.start-tool {
+      border-color: var(--start);
+      color: var(--start);
+      background: rgba(230, 126, 128, .1);
+    }
+
+    .tool-btn.active.end-tool {
+      border-color: var(--end);
+      color: var(--end);
+      background: rgba(167, 192, 128, .1);
+    }
+
+    .tool-btn.active.wall-tool {
+      border-color: #56635f;
+      color: #d3c6aa;
+      background: rgba(86, 99, 95, .2);
+    }
+
+    .tool-btn.active.erase-tool {
+      border-color: #4f585e;
+      color: #859289;
+      background: rgba(79, 88, 94, .15);
+    }
+
+    /* Speed slider */
+    .speed-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 3px;
+      background: var(--border);
+      outline: none;
+      border-radius: 2px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(77, 166, 255, .5);
+    }
+
+    .speed-val {
+      font-size: .65rem;
+      color: var(--accent);
+      width: 30px;
+      text-align: right;
+    }
+
+    /* Size row */
+    .size-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .size-btn {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #4a6a90;
+      font-family: 'Share Tech Mono';
+      font-size: .65rem;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all .2s;
+    }
+
+    .size-btn:hover {
+      border-color: #3a5a80;
+      color: var(--text);
+    }
+
+    .size-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(77, 166, 255, .08);
+    }
+
+    /* Action buttons */
+    .action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .btn-run {
+      padding: 14px;
+      border: 1px solid var(--green);
+      background: transparent;
+      color: var(--green);
+      font-family: 'Orbitron', monospace;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all .2s;
+      text-transform: uppercase;
+    }
+
+    .btn-run:hover:not(:disabled) {
+      background: rgba(167, 192, 128, .15);
+      box-shadow: 0 0 10px rgba(167, 192, 128, .2);
+    }
+
+    .btn-run:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      padding: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #5a7aa0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all .2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: #3a5a80;
+      color: var(--text);
+    }
+
+    /* === STATS === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-lbl {
+      font-size: .55rem;
+      letter-spacing: .15em;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* === STATUS BAR === */
+    .status-bar {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .7rem;
+      color: #475569;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3a5a70;
+      flex-shrink: 0;
+    }
+
+    .status-dot.running {
+      background: var(--green);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.done {
+      background: var(--yellow);
+    }
+
+    .status-dot.error {
+      background: var(--red);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .3;
+      }
+    }
+
+    /* === LEGEND === */
+    .legend {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .62rem;
+      color: #64748b;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* === GRID === */
+    .grid-wrap {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    #grid-canvas {
+      display: block;
+      cursor: crosshair;
+      image-rendering: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">MAZE<span>_</span>SOLVER</div>
+    <div class="subtitle">Pathfinding Visualization // BFS &amp; A*</div>
+  </header>
+
+  <div class="app">
+
+    <!-- CONTROLS -->
+    <div class="panel controls">
+      <div class="panel-title">◈ Control Panel</div>
+
+      <!-- Algorithm -->
+      <div class="section">
+        <div class="section-label">Algorithm</div>
+        <div class="algo-group">
+          <button class="algo-btn active" id="btn-bfs" onclick="setAlgo('bfs')">BFS</button>
+          <button class="algo-btn a-star" id="btn-astar" onclick="setAlgo('astar')">A*</button>
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div class="section">
+        <div class="section-label">Draw Tool</div>
+        <div class="tool-group">
+          <button class="tool-btn wall-tool active" id="tool-wall" onclick="setTool('wall')">▪ Wall</button>
+          <button class="tool-btn erase-tool" id="tool-erase" onclick="setTool('erase')">◌ Erase</button>
+          <button class="tool-btn start-tool" id="tool-start" onclick="setTool('start')">▶ Start</button>
+          <button class="tool-btn end-tool" id="tool-end" onclick="setTool('end')">✦ End</button>
+        </div>
+      </div>
+
+      <!-- Size -->
+      <div class="section">
+        <div class="section-label">Grid Size</div>
+        <div class="size-row">
+          <button class="size-btn" onclick="setSize(15)">15</button>
+          <button class="size-btn active" onclick="setSize(25)">25</button>
+          <button class="size-btn" onclick="setSize(35)">35</button>
+          <button class="size-btn" onclick="setSize(45)">45</button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="section">
+        <div class="section-label">Anim Speed</div>
+        <div class="speed-row">
+          <input type="range" min="1" max="10" value="5" id="speed-slider"
+            oninput="speedVal = this.value; document.getElementById('speed-display').textContent = this.value">
+          <span class="speed-val" id="speed-display">5</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="section action-group">
+        <button class="btn-run" id="btn-run" onclick="runSolver()">▶ RUN SOLVER</button>
+        <button class="btn-secondary" onclick="generateMaze()">⊞ Generate Maze</button>
+        <button class="btn-secondary" onclick="clearPath()">⊘ Clear Path</button>
+        <button class="btn-secondary" onclick="clearAll()">✕ Clear All</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="section">
+        <div class="section-label">Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-val" id="stat-visited">—</span>
+            <span class="stat-lbl">Visited</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-val" id="stat-path">—</span>
+            <span class="stat-lbl">Path Len</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-val" id="stat-time">—</span>
+            <span class="stat-lbl">Time (ms)</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-val" id="stat-queue">—</span>
+            <span class="stat-lbl">Max Queue</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Ready. Draw walls and run solver.</span>
+      </div>
+
+      <!-- Legend -->
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#ea0436;border:1px solid #ff4d6d"></div> Visited (Red)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#00ccfa"></div> Shortest Path (Cyan)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#39deff"></div> Start
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#ff0d11"></div> End
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="panel grid-wrap" style="padding:10px;">
+      <div class="panel-title">◈ Maze Grid</div>
+      <canvas id="grid-canvas"></canvas>
+    </div>
+
+  </div>
+
+  <script>
+    // ===== STATE =====
+    let COLS = 25, ROWS = 25;
+    let CELL;
+    let grid = [];
+    let startCell = null, endCell = null;
+    let currentAlgo = 'bfs';
+    let currentTool = 'wall';
+    let isMouseDown = false;
+    let isRunning = false;
+    let animFrames = [];
+    let speedVal = 5;
+
+    const canvas = document.getElementById('grid-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Cell types
+    const EMPTY = 0, WALL = 1, START = 2, END = 3,
+      VISITED = 4, FRONTIER = 5, PATH = 6;
+
+    // Colors
+    // Colors
+    const COLORS = {
+      [EMPTY]: '#2d353b',
+      [WALL]: '#56635f',
+      [START]: '#39deff',
+      [END]: '#ff0d11',
+      [FRONTIER]: '#ea0436',
+      [PATH]: '#00ccfa',
+    };
+
+    function visitedColor(algo) {
+      return '#ea0436';
+    }
+
+    // ===== INIT =====
+    function initGrid() {
+      const maxW = Math.min(window.innerWidth - 280, 680);
+      const maxH = Math.min(window.innerHeight - 200, 680);
+      CELL = Math.floor(Math.min(maxW, maxH) / Math.max(COLS, ROWS));
+      CELL = Math.max(CELL, 8);
+
+      canvas.width = COLS * CELL;
+      canvas.height = ROWS * CELL;
+
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+      startCell = { r: Math.floor(ROWS / 2), c: 2 };
+      endCell = { r: Math.floor(ROWS / 2), c: COLS - 3 };
+      grid[startCell.r][startCell.c] = START;
+      grid[endCell.r][endCell.c] = END;
+      drawGrid();
+    }
+
+    function drawGrid() {
+      ctx.fillStyle = '#232a2e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          drawCell(r, c);
+        }
+      }
+      // Grid lines
+      ctx.strokeStyle = '#343f44';
+      ctx.lineWidth = .5;
+      for (let r = 0; r <= ROWS; r++) {
+        ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(COLS * CELL, r * CELL); ctx.stroke();
+      }
+      for (let c = 0; c <= COLS; c++) {
+        ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, ROWS * CELL); ctx.stroke();
+      }
+    }
+
+    function drawCell(r, c) {
+      const x = c * CELL, y = r * CELL;
+      const type = grid[r][c];
+      const pad = type === WALL ? 0 : 1;
+
+      // Base
+      let color;
+      if (type === VISITED) color = visitedColor(currentAlgo);
+      else if (type === FRONTIER) color = '#ff4d6d';
+      else color = COLORS[type] || COLORS[EMPTY];
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x + pad, y + pad, CELL - pad * 2, CELL - pad * 2);
+
+      // Wall texture
+      if (type === WALL) {
+        ctx.fillStyle = 'rgba(255,255,255,.2)';
+        ctx.fillRect(x + 1, y + 1, CELL - 2, 1);
+        ctx.fillRect(x + 1, y + 1, 1, CELL - 2);
+        ctx.fillStyle = 'rgba(0,0,0,.1)';
+        ctx.fillRect(x + CELL - 2, y + 1, 1, CELL - 2);
+        ctx.fillRect(x + 1, y + CELL - 2, CELL - 2, 1);
+      }
+
+      // Start/End glow
+      if (type === START || type === END) {
+        const grad = ctx.createRadialGradient(
+          x + CELL / 2, y + CELL / 2, 0,
+          x + CELL / 2, y + CELL / 2, CELL * .7
+        );
+        if (type === START) {
+          grad.addColorStop(0, 'rgba(57, 222, 255, .6)');
+          grad.addColorStop(1, 'rgba(57, 222, 255, 0)');
+        } else {
+          grad.addColorStop(0, 'rgba(255, 13, 17, .6)');
+          grad.addColorStop(1, 'rgba(255, 13, 17, 0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, CELL, CELL);
+
+        // Icon
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${CELL * .55}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(type === START ? '▶' : '✦', x + CELL / 2, y + CELL / 2 + 1);
+      }
+
+      // Path glow
+      if (type === PATH) {
+        ctx.fillStyle = 'rgba(0, 204, 250, .25)';
+        ctx.fillRect(x, y, CELL, CELL);
+      }
+    }
+
+    // ===== MOUSE EVENTS =====
+    function getCellFromEvent(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+      return {
+        r: Math.floor(my / CELL),
+        c: Math.floor(mx / CELL)
+      };
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (isRunning) return;
+      isMouseDown = true;
+      applyTool(getCellFromEvent(e));
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!isMouseDown || isRunning) return;
+      applyTool(getCellFromEvent(e));
+    });
+    canvas.addEventListener('mouseup', () => isMouseDown = false);
+    canvas.addEventListener('mouseleave', () => isMouseDown = false);
+
+    // Touch
+    canvas.addEventListener('touchstart', e => {
+      if (isRunning) return;
+      e.preventDefault();
+      isMouseDown = true;
+      applyTool(getCellFromEvent(e.touches[0]));
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!isMouseDown) return;
+      applyTool(getCellFromEvent(e.touches[0]));
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => isMouseDown = false);
+
+    function applyTool({ r, c }) {
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+      const cur = grid[r][c];
+
+      if (currentTool === 'start') {
+        if (cur === END) return;
+        if (startCell) grid[startCell.r][startCell.c] = EMPTY, drawCell(startCell.r, startCell.c);
+        startCell = { r, c };
+        grid[r][c] = START;
+      } else if (currentTool === 'end') {
+        if (cur === START) return;
+        if (endCell) grid[endCell.r][endCell.c] = EMPTY, drawCell(endCell.r, endCell.c);
+        endCell = { r, c };
+        grid[r][c] = END;
+      } else if (currentTool === 'wall') {
+        if (cur === START || cur === END) return;
+        grid[r][c] = WALL;
+      } else if (currentTool === 'erase') {
+        if (cur === START || cur === END) return;
+        grid[r][c] = EMPTY;
+      }
+      drawCell(r, c);
+    }
+
+    // ===== UI HELPERS =====
+    function setAlgo(a) {
+      currentAlgo = a;
+      document.getElementById('btn-bfs').classList.toggle('active', a === 'bfs');
+      document.getElementById('btn-astar').classList.toggle('active', a === 'astar');
+      setStatus('ready', `Algorithm: ${a === 'bfs' ? 'Breadth-First Search' : 'A* Search'}`);
+    }
+
+    function setTool(t) {
+      currentTool = t;
+      ['wall', 'erase', 'start', 'end'].forEach(id => {
+        const el = document.getElementById('tool-' + id);
+        el.classList.toggle('active', id === t);
+      });
+    }
+
+    function setSize(n) {
+      if (isRunning) return;
+      COLS = ROWS = n;
+      document.querySelectorAll('.size-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.trim() == n);
+      });
+      clearAnimFrames();
+      initGrid();
+      resetStats();
+    }
+
+    function setStatus(state, msg) {
+      const dot = document.getElementById('status-dot');
+      dot.className = 'status-dot' + (state !== 'ready' ? ' ' + state : '');
+      document.getElementById('status-text').textContent = msg;
+    }
+
+    function resetStats() {
+      ['visited', 'path', 'time', 'queue'].forEach(k =>
+        document.getElementById('stat-' + k).textContent = '—'
+      );
+    }
+
+    function updateStats(visited, path, time, maxQ) {
+      document.getElementById('stat-visited').textContent = visited;
+      document.getElementById('stat-path').textContent = path !== null ? path : '✕';
+      document.getElementById('stat-time').textContent = time;
+      document.getElementById('stat-queue').textContent = maxQ;
+    }
+
+    // ===== CLEAR =====
+    function clearAnimFrames() {
+      animFrames.forEach(clearTimeout);
+      animFrames = [];
+      isRunning = false;
+      document.getElementById('btn-run').disabled = false;
+    }
+
+    function clearPath() {
+      clearAnimFrames();
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (grid[r][c] === VISITED || grid[r][c] === FRONTIER || grid[r][c] === PATH)
+            grid[r][c] = EMPTY;
+      drawGrid();
+      resetStats();
+      setStatus('ready', 'Path cleared.');
+    }
+
+    function clearAll() {
+      clearAnimFrames();
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+      startCell = { r: Math.floor(ROWS / 2), c: 2 };
+      endCell = { r: Math.floor(ROWS / 2), c: COLS - 3 };
+      grid[startCell.r][startCell.c] = START;
+      grid[endCell.r][endCell.c] = END;
+      drawGrid();
+      resetStats();
+      setStatus('ready', 'Grid cleared.');
+    }
+
+    // ===== MAZE GENERATOR (Recursive Division) =====
+    function generateMaze() {
+      if (isRunning) return;
+      clearAnimFrames();
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+      // border
+      for (let r = 0; r < ROWS; r++) grid[r][0] = grid[r][COLS - 1] = WALL;
+      for (let c = 0; c < COLS; c++) grid[0][c] = grid[ROWS - 1][c] = WALL;
+
+      divide(1, 1, ROWS - 2, COLS - 2);
+
+      startCell = { r: 1, c: 1 };
+      endCell = { r: ROWS - 2, c: COLS - 2 };
+      grid[startCell.r][startCell.c] = START;
+      grid[endCell.r][endCell.c] = END;
+      drawGrid();
+      resetStats();
+      setStatus('ready', 'Maze generated. Ready to solve!');
+    }
+
+    function divide(rMin, cMin, rMax, cMax) {
+      const H = rMax - rMin, W = cMax - cMin;
+      if (H < 2 || W < 2) return;
+      const horiz = H > W ? true : W > H ? false : Math.random() < .5;
+
+      if (horiz) {
+        const wallR = rMin + 1 + Math.floor(Math.random() * (H - 1));
+        const passC = cMin + Math.floor(Math.random() * (W + 1));
+        for (let c = cMin; c <= cMax; c++) if (c !== passC) grid[wallR][c] = WALL;
+        divide(rMin, cMin, wallR - 1, cMax);
+        divide(wallR + 1, cMin, rMax, cMax);
+      } else {
+        const wallC = cMin + 1 + Math.floor(Math.random() * (W - 1));
+        const passR = rMin + Math.floor(Math.random() * (H + 1));
+        for (let r = rMin; r <= rMax; r++) if (r !== passR) grid[r][wallC] = WALL;
+        divide(rMin, cMin, rMax, wallC - 1);
+        divide(rMin, wallC + 1, rMax, cMax);
+      }
+    }
+
+    // ===== BFS =====
+    function bfs() {
+      if (!startCell || !endCell) return null;
+      const queue = [[startCell.r, startCell.c]];
+      const visited = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      const parent = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      visited[startCell.r][startCell.c] = true;
+
+      const steps = []; // [{type:'visit'|'path', cells:[...]}]
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      let maxQ = 1, found = false;
+
+      while (queue.length) {
+        maxQ = Math.max(maxQ, queue.length);
+        const [r, c] = queue.shift();
+        steps.push({ type: 'visit', r, c });
+
+        if (r === endCell.r && c === endCell.c) { found = true; break; }
+
+        for (const [dr, dc] of dirs) {
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+          if (visited[nr][nc] || grid[nr][nc] === WALL) continue;
+          visited[nr][nc] = true;
+          parent[nr][nc] = [r, c];
+          queue.push([nr, nc]);
+        }
+      }
+
+      if (!found) return { steps, path: null, maxQ };
+
+      // Trace path
+      const path = [];
+      let [r, c] = [endCell.r, endCell.c];
+      while (!(r === startCell.r && c === startCell.c)) {
+        path.unshift([r, c]);
+        [r, c] = parent[r][c];
+      }
+      return { steps, path, maxQ };
+    }
+
+    // ===== A* =====
+    function heuristic(r, c) {
+      return Math.abs(r - endCell.r) + Math.abs(c - endCell.c); // Manhattan
+    }
+
+    function astar() {
+      if (!startCell || !endCell) return null;
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      const open = [[0, startCell.r, startCell.c]]; // [f, r, c]
+      const g = Array.from({ length: ROWS }, () => Array(COLS).fill(Infinity));
+      const parent = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      const closed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      g[startCell.r][startCell.c] = 0;
+
+      const steps = []; let maxQ = 1; let found = false;
+
+      while (open.length) {
+        open.sort((a, b) => a[0] - b[0]);
+        maxQ = Math.max(maxQ, open.length);
+        const [, r, c] = open.shift();
+        if (closed[r][c]) continue;
+        closed[r][c] = true;
+        steps.push({ type: 'visit', r, c });
+
+        if (r === endCell.r && c === endCell.c) { found = true; break; }
+
+        for (const [dr, dc] of dirs) {
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+          if (closed[nr][nc] || grid[nr][nc] === WALL) continue;
+          const ng = g[r][c] + 1;
+          if (ng < g[nr][nc]) {
+            g[nr][nc] = ng;
+            parent[nr][nc] = [r, c];
+            open.push([ng + heuristic(nr, nc), nr, nc]);
+          }
+        }
+      }
+
+      if (!found) return { steps, path: null, maxQ };
+
+      const path = [];
+      let [r, c] = [endCell.r, endCell.c];
+      while (!(r === startCell.r && c === startCell.c)) {
+        path.unshift([r, c]);
+        [r, c] = parent[r][c];
+      }
+      return { steps, path, maxQ };
+    }
+
+    // ===== RUN SOLVER =====
+    function runSolver() {
+      if (isRunning) return;
+      if (!startCell || !endCell) { setStatus('error', 'Set start and end points first.'); return; }
+
+      clearPath();
+      isRunning = true;
+      document.getElementById('btn-run').disabled = true;
+      setStatus('running', `Running ${currentAlgo.toUpperCase()}…`);
+
+      const t0 = performance.now();
+      const result = currentAlgo === 'bfs' ? bfs() : astar();
+      const elapsed = Math.round(performance.now() - t0);
+
+      if (!result) { setStatus('error', 'Error running algorithm.'); isRunning = false; return; }
+
+      const { steps, path, maxQ } = result;
+      const speed = 11 - parseInt(speedVal); // invert: 1=fast, 10=slow
+      const delay = speed * 8;
+
+      let i = 0;
+      function animateVisit() {
+        if (i >= steps.length) {
+          // Animate path
+          if (!path) {
+            updateStats(steps.length, null, elapsed, maxQ);
+            setStatus('error', 'No path found! The maze is unsolvable.');
+            isRunning = false;
+            document.getElementById('btn-run').disabled = false;
+          } else {
+            animatePath(path, steps.length, elapsed, maxQ);
+          }
+          return;
+        }
+        const batch = Math.max(1, Math.floor(steps.length / 200));
+        for (let b = 0; b < batch && i < steps.length; b++, i++) {
+          const { r, c } = steps[i];
+          if (grid[r][c] !== START && grid[r][c] !== END) {
+            grid[r][c] = VISITED;
+            drawCell(r, c);
+          }
+        }
+        const id = setTimeout(animateVisit, delay);
+        animFrames.push(id);
+      }
+
+      animateVisit();
+    }
+
+    function animatePath(path, visitedCount, elapsed, maxQ) {
+      let i = 0;
+      function step() {
+        if (i >= path.length) {
+          updateStats(visitedCount, path.length + 1, elapsed, maxQ);
+          setStatus('done', `✓ Path found! Length: ${path.length + 1} | Visited: ${visitedCount} cells`);
+          isRunning = false;
+          document.getElementById('btn-run').disabled = false;
+          return;
+        }
+        const [r, c] = path[i++];
+        if (grid[r][c] !== START && grid[r][c] !== END) {
+          grid[r][c] = PATH;
+          drawCell(r, c);
+        }
+        const id = setTimeout(step, 25);
+        animFrames.push(id);
+      }
+      step();
+    }
+
+    // ===== SPEED SLIDER =====
+    document.getElementById('speed-slider').addEventListener('input', function () {
+      speedVal = this.value;
+    });
+
+    // ===== INIT =====
+    initGrid();
+    setStatus('ready', 'Draw walls, then click RUN SOLVER.');
+    window.addEventListener('resize', () => {
+      if (!isRunning) {
+        const snap = grid.map(r => [...r]);
+        const sc = { ...startCell }, ec = { ...endCell };
+        initGrid();
+        // restore within bounds
+        for (let r = 0; r < Math.min(snap.length, ROWS); r++)
+          for (let c = 0; c < Math.min(snap[0].length, COLS); c++)
+            grid[r][c] = snap[r]?.[c] ?? EMPTY;
+        if (sc.r < ROWS && sc.c < COLS) { startCell = sc; grid[sc.r][sc.c] = START; }
+        if (ec.r < ROWS && ec.c < COLS) { endCell = ec; grid[ec.r][ec.c] = END; }
+        drawGrid();
+      }
+    });
+  </script>
+</body>
+
+</html>

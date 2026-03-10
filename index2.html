@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbitrage Hunter — Bellman-Ford Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03080f;
+  --panel: #070e1a;
+  --card: #0b1525;
+  --border: #112240;
+  --border2: #1a3060;
+  --gold: #f0c040;
+  --gold2: #e8a020;
+  --green: #10e880;
+  --red: #ff3a5c;
+  --blue: #38b6ff;
+  --cyan: #00e5d4;
+  --text: #cdd8ee;
+  --muted: #4a6080;
+  --dim: #1e3050;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline effect */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* Ambient glow */
+.ambient {
+  position:fixed;
+  width:600px; height:600px;
+  border-radius:50%;
+  filter:blur(120px);
+  pointer-events:none;
+  z-index:0;
+  opacity:0.07;
+}
+.amb1 { background:var(--gold); top:-200px; right:-100px; }
+.amb2 { background:var(--green); bottom:-200px; left:-100px; }
+
+/* LAYOUT */
+.app { 
+  position:relative; z-index:1;
+  max-width:1400px; margin:0 auto; padding:0 20px 60px;
+}
+
+/* HEADER */
+.header {
+  padding: 36px 0 28px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.header-left {}
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'DM Mono', monospace;
+  font-size:10px; letter-spacing:3px;
+  color:var(--gold); text-transform:uppercase;
+  border:1px solid rgba(240,192,64,0.3);
+  padding:5px 12px; margin-bottom:14px;
+  border-radius:2px;
+}
+.badge::before { content:'●'; font-size:7px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+h1 {
+  font-family:'Bebas Neue', sans-serif;
+  font-size: clamp(38px, 6vw, 72px);
+  letter-spacing:2px;
+  line-height:1;
+  color: #fff;
+}
+h1 span { color: var(--gold); }
+
+.header-meta {
+  font-family:'DM Mono', monospace;
+  font-size:11px; color:var(--muted);
+  text-align:right; line-height:1.9;
+}
+.header-meta strong { color:var(--text); }
+
+/* MAIN GRID */
+.main-grid {
+  display:grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+}
+@media(max-width:960px) { .main-grid { grid-template-columns:1fr; } }
+
+/* PANEL */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.panel-header {
+  padding: 14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.panel-title {
+  font-family:'DM Mono', monospace;
+  font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--muted);
+}
+.panel-body { padding:20px; }
+
+/* CANVAS AREA */
+.canvas-wrap {
+  position:relative;
+  background: var(--card);
+  border-radius:3px;
+  overflow:hidden;
+  height:420px;
+}
+canvas { display:block; width:100%; height:100%; }
+
+/* CONTROLS */
+.controls {
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  align-items:center;
+}
+
+.btn {
+  font-family:'DM Mono', monospace;
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  padding:9px 20px; border-radius:2px;
+  border:1px solid; cursor:pointer;
+  transition: all 0.2s;
+  display:flex; align-items:center; gap:8px;
+}
+.btn:active { transform:scale(0.97); }
+.btn-gold { background:var(--gold); color:#000; border-color:var(--gold); font-weight:600; }
+.btn-gold:hover { background:var(--gold2); border-color:var(--gold2); }
+.btn-outline { background:transparent; color:var(--text); border-color:var(--border2); }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+.btn-green { background:rgba(16,232,128,0.1); color:var(--green); border-color:rgba(16,232,128,0.3); }
+.btn-green:hover { background:rgba(16,232,128,0.2); }
+.btn:disabled { opacity:0.35; cursor:not-allowed; }
+
+.speed-label { font-family:'DM Mono', monospace; font-size:10px; color:var(--muted); margin-left:auto; }
+select.speed-sel {
+  background: var(--card); color:var(--text);
+  border:1px solid var(--border2); font-family:'DM Mono', monospace;
+  font-size:10px; padding:7px 10px; border-radius:2px; cursor:pointer;
+}
+
+/* RIGHT PANEL */
+.right-col { display:flex; flex-direction:column; gap:20px; }
+
+/* RATES TABLE */
+.rates-table { width:100%; border-collapse:collapse; }
+.rates-table th {
+  font-family:'DM Mono', monospace;
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); padding:6px 8px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+}
+.rates-table td {
+  font-family:'DM Mono', monospace;
+  font-size:12px; padding:7px 8px;
+  border-bottom:1px solid rgba(17,34,64,0.5);
+  transition: background 0.3s;
+}
+.rates-table tr:hover td { background:rgba(255,255,255,0.02); }
+.rate-from, .rate-to { color:var(--blue); }
+.rate-val { color:var(--text); font-weight:500; }
+.rate-log { color:var(--muted); font-size:10px; }
+.rate-neg { color:var(--green) !important; }
+.rate-row-arb td { background: rgba(16,232,128,0.06) !important; }
+
+/* ITERATION PANEL */
+.iter-list {
+  max-height:220px; overflow-y:auto;
+  scrollbar-width:thin; scrollbar-color: var(--border2) transparent;
+}
+.iter-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(17,34,64,0.6);
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+.iter-num {
+  font-family:'DM Mono', monospace;
+  font-size:9px; color:var(--muted);
+  background: var(--card); padding:2px 6px; border-radius:2px;
+  flex-shrink:0; margin-top:1px;
+}
+.iter-text { font-size:12px; line-height:1.6; color:var(--text); }
+.iter-text .hl { color:var(--gold); font-family:'DM Mono', monospace; }
+.iter-text .hl-g { color:var(--green); font-family:'DM Mono', monospace; }
+.iter-text .hl-r { color:var(--red); font-family:'DM Mono', monospace; }
+.iter-text .hl-b { color:var(--blue); font-family:'DM Mono', monospace; }
+
+/* RESULT CARD */
+.result-card {
+  padding:20px;
+  border-radius:3px;
+  border:1px solid;
+  transition: all 0.5s;
+}
+.result-card.neutral { border-color:var(--border); background:var(--card); }
+.result-card.found { border-color:var(--green); background:rgba(16,232,128,0.06); }
+.result-card.none { border-color:var(--red); background:rgba(255,58,92,0.05); }
+
+.result-title {
+  font-family:'DM Mono', monospace;
+  font-size:10px; letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:12px;
+}
+.result-title.found { color:var(--green); }
+.result-title.none { color:var(--red); }
+.result-title.neutral { color:var(--muted); }
+
+.profit-big {
+  font-family:'Bebas Neue', monospace;
+  font-size:48px; letter-spacing:2px;
+  color:var(--green); line-height:1;
+  margin-bottom:4px;
+}
+.profit-sub { font-size:12px; color:var(--muted); margin-bottom:16px; }
+
+.cycle-path {
+  display:flex; align-items:center; flex-wrap:wrap; gap:4px;
+  font-family:'DM Mono', monospace; font-size:12px;
+}
+.cycle-node {
+  background:rgba(16,232,128,0.15);
+  border:1px solid rgba(16,232,128,0.4);
+  color:var(--green); padding:3px 10px; border-radius:2px;
+}
+.cycle-arrow { color:var(--muted); font-size:10px; }
+
+/* DATASET SELECTOR */
+.dataset-tabs {
+  display:flex; gap:6px; flex-wrap:wrap;
+  padding:16px 20px; border-bottom:1px solid var(--border);
+}
+.dtab {
+  font-family:'DM Mono', monospace;
+  font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+  padding:6px 14px; border-radius:2px; cursor:pointer;
+  border:1px solid var(--border2); color:var(--muted);
+  transition:all 0.2s;
+}
+.dtab.active { border-color:var(--gold); color:var(--gold); background:rgba(240,192,64,0.08); }
+.dtab:hover:not(.active) { border-color:var(--text); color:var(--text); }
+
+/* DIST TABLE */
+.dist-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(100px,1fr));
+  gap:6px;
+  margin-top:10px;
+}
+.dist-cell {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:3px; padding:8px 10px;
+  font-family:'DM Mono', monospace;
+}
+.dist-cell-curr { font-size:12px; color:var(--blue); margin-bottom:2px; }
+.dist-cell-val { font-size:14px; color:var(--text); font-weight:500; }
+.dist-cell-val.updated { color:var(--gold); }
+.dist-cell-val.neg { color:var(--green); }
+.dist-cell-val.inf { color:var(--muted); }
+
+/* TICKER */
+.ticker-wrap {
+  overflow:hidden; border-bottom:1px solid var(--border);
+  padding:0;
+}
+.ticker-inner {
+  display:flex; gap:32px;
+  animation: ticker 20s linear infinite;
+  padding:10px 20px;
+  white-space:nowrap;
+}
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.tick-item {
+  font-family:'DM Mono', monospace; font-size:11px;
+  display:flex; align-items:center; gap:6px; flex-shrink:0;
+}
+.tick-pair { color:var(--muted); }
+.tick-rate { color:var(--text); }
+.tick-chg.up { color:var(--green); }
+.tick-chg.dn { color:var(--red); }
+
+/* ALGO INFO */
+.algo-steps { list-style:none; }
+.algo-steps li {
+  display:flex; gap:10px; padding:8px 0;
+  border-bottom:1px solid rgba(17,34,64,0.5);
+  font-size:12px; line-height:1.6;
+}
+.algo-steps li:last-child { border-bottom:none; }
+.step-num {
+  font-family:'DM Mono', monospace; font-size:10px;
+  color:var(--gold); background:rgba(240,192,64,0.1);
+  border:1px solid rgba(240,192,64,0.3);
+  width:22px; height:22px; border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+
+.complexity-badge {
+  display:inline-block;
+  font-family:'DM Mono', monospace;
+  font-size:13px; color:var(--cyan);
+  background:rgba(0,229,212,0.08);
+  border:1px solid rgba(0,229,212,0.2);
+  padding:8px 16px; border-radius:2px;
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+<div class="ambient amb1"></div>
+<div class="ambient amb2"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="badge">Shortest Path · Bellman-Ford</div>
+      <h1>ARBITRAGE <span>HUNTER</span></h1>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace">
+        Deteksi peluang arbitrase mata uang via negative cycle
+      </div>
+    </div>
+    <div class="header-meta">
+      <div>Algorithm <strong>Bellman-Ford</strong></div>
+      <div>Complexity <strong>O(V · E)</strong></div>
+      <div>Technique <strong>Negative Cycle Detection</strong></div>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="panel" style="margin-bottom:20px;padding:0;overflow:hidden">
+    <div class="ticker-wrap">
+      <div class="ticker-inner" id="ticker"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-grid">
+
+    <!-- LEFT: GRAPH + CONTROLS -->
+    <div>
+      <!-- Dataset Selector -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-header">
+          <span class="panel-title">// Dataset Pasar</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="statusLabel">IDLE</span>
+        </div>
+        <div class="dataset-tabs" id="datasetTabs">
+          <div class="dtab active" onclick="loadDataset(0)">Normal Market</div>
+          <div class="dtab" onclick="loadDataset(1)">Arbitrage 1 Cycle</div>
+          <div class="dtab" onclick="loadDataset(2)">Multi Arbitrage</div>
+          <div class="dtab" onclick="loadDataset(3)">Custom / Random</div>
+        </div>
+        <!-- Rates Table -->
+        <div class="panel-body" style="padding-bottom:12px">
+          <table class="rates-table" id="ratesTable">
+            <thead>
+              <tr>
+                <th>FROM</th><th>TO</th><th>RATE</th><th>-LOG(RATE)</th><th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="ratesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Graph Canvas -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">// Graf Mata Uang — Bellman-Ford Visualization</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="iterLabel">Iter: 0 / 0</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="graphCanvas"></canvas>
+        </div>
+        <div class="controls">
+          <button class="btn btn-gold" id="btnRun" onclick="startAnimation()">▶ RUN</button>
+          <button class="btn btn-outline" id="btnStep" onclick="stepOnce()">⏭ STEP</button>
+          <button class="btn btn-outline" id="btnReset" onclick="resetAll()">↺ RESET</button>
+          <span class="speed-label">SPEED</span>
+          <select class="speed-sel" id="speedSel">
+            <option value="900">Slow</option>
+            <option value="500" selected>Normal</option>
+            <option value="200">Fast</option>
+            <option value="80">Turbo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Distance Array -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-header">
+          <span class="panel-title">// Distance Array (dist[])</span>
+        </div>
+        <div class="panel-body">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace">
+            dist[v] = akumulasi -log(rate) dari sumber ke v. Jika bisa dikurangi lagi setelah V-1 iterasi → <span style="color:var(--green)">negative cycle!</span>
+          </div>
+          <div class="dist-grid" id="distGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+
+      <!-- RESULT -->
+      <div class="result-card neutral" id="resultCard">
+        <div class="result-title neutral" id="resultTitle">// Menunggu Analisis...</div>
+        <div id="resultBody" style="font-size:13px;color:var(--muted)">
+          Pilih dataset dan tekan RUN untuk mendeteksi peluang arbitrase menggunakan algoritma Bellman-Ford.
+        </div>
+      </div>
+
+      <!-- ALGO EXPLANATION -->
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">// Cara Kerja Algoritma</span></div>
+        <div class="panel-body">
+          <ul class="algo-steps">
+            <li><div class="step-num">1</div><div>Ubah setiap exchange rate <em>r</em> menjadi bobot edge: <span style="font-family:'DM Mono',monospace;color:var(--gold)">w = −log(r)</span></div></li>
+            <li><div class="step-num">2</div><div>Inisialisasi <span style="font-family:'DM Mono',monospace;color:var(--gold)">dist[src] = 0</span>, semua node lain = ∞</div></li>
+            <li><div class="step-num">3</div><div>Lakukan <span style="font-family:'DM Mono',monospace;color:var(--gold)">V−1</span> iterasi relaxasi semua edge</div></li>
+            <li><div class="step-num">4</div><div>Iterasi ke-V: jika masih ada edge yang bisa di-relax → <span style="color:var(--green)">negative cycle ditemukan = ARBITRASE!</span></div></li>
+            <li><div class="step-num">5</div><div>Trace back cycle untuk menemukan path konversi yang menguntungkan</div></li>
+          </ul>
+          <div class="complexity-badge">O(V · E) = O(n² · n) = O(n³)</div>
+        </div>
+      </div>
+
+      <!-- LOG -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">// Execution Log</span>
+          <button onclick="document.getElementById('iterList').innerHTML=''" style="background:none;border:none;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;font-size:10px">CLEAR</button>
+        </div>
+        <div class="panel-body" style="padding:0 16px">
+          <div class="iter-list" id="iterList"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATASETS =====
+const DATASETS = [
+  {
+    name: "Normal Market",
+    currencies: ["USD","EUR","GBP","JPY","IDR"],
+    rates: [
+      ["USD","EUR",0.92], ["USD","GBP",0.79], ["USD","JPY",149.5], ["USD","IDR",15750],
+      ["EUR","USD",1.087],["EUR","GBP",0.858],["EUR","JPY",162.5],
+      ["GBP","USD",1.265],["GBP","EUR",1.165],["GBP","JPY",189.2],
+      ["JPY","USD",0.00669],["JPY","EUR",0.00616],
+      ["IDR","USD",0.0000635]
+    ]
+  },
+  {
+    name: "Arbitrage 1 Cycle",
+    currencies: ["USD","EUR","GBP","JPY"],
+    rates: [
+      ["USD","EUR",0.92], ["USD","GBP",0.79], ["USD","JPY",149.5],
+      ["EUR","USD",1.087],["EUR","GBP",0.858],["EUR","JPY",162.5],
+      ["GBP","USD",1.31], // inflated — creates arbitrage USD→EUR→GBP→USD
+      ["GBP","EUR",1.165],["GBP","JPY",189.2],
+      ["JPY","USD",0.00669],["JPY","EUR",0.00616],["JPY","GBP",0.00535]
+    ]
+  },
+  {
+    name: "Multi Arbitrage",
+    currencies: ["USD","EUR","GBP","JPY","CHF"],
+    rates: [
+      ["USD","EUR",0.92],["USD","GBP",0.79],["USD","JPY",149.5],["USD","CHF",0.88],
+      ["EUR","USD",1.087],["EUR","GBP",0.86],["EUR","JPY",162.5],["EUR","CHF",0.96],
+      ["GBP","USD",1.32],["GBP","EUR",1.17],["GBP","JPY",190],["GBP","CHF",1.13],
+      ["JPY","USD",0.0068],["JPY","CHF",0.0059],
+      ["CHF","USD",1.14],["CHF","EUR",1.05],["CHF","JPY",171]
+    ]
+  },
+  {
+    name: "Random",
+    currencies: ["USD","EUR","GBP","JPY","IDR"],
+    rates: [] // generated dynamically
+  }
+];
+
+function generateRandom() {
+  const c = ["USD","EUR","GBP","JPY","IDR"];
+  const base = {"USD":1,"EUR":0.92,"GBP":0.79,"JPY":149.5,"IDR":15750};
+  let rates = [];
+  for(let i=0;i<c.length;i++) for(let j=0;j<c.length;j++) {
+    if(i===j) continue;
+    let r = base[c[j]]/base[c[i]];
+    r *= (0.97 + Math.random()*0.07); // random noise
+    rates.push([c[i],c[j],+r.toFixed(5)]);
+  }
+  // randomly inject arbitrage 50% of time
+  if(Math.random()>0.5) {
+    const chain = [0,1,2]; // USD→EUR→GBP→USD
+    rates.find(r=>r[0]===c[chain[2]]&&r[1]===c[chain[0]])[2] *= 1.04;
+  }
+  DATASETS[3].rates = rates;
+}
+
+// ===== STATE =====
+let dataset = DATASETS[0];
+let currencies = [];
+let edges = [];   // {from, to, rate, w} w = -log(rate)
+let dist = {};
+let pred = {};
+let iterSteps = []; // all relaxation steps pre-computed
+let stepIdx = 0;
+let animTimer = null;
+let nodePos = {};
+let highlightEdge = null;
+let arbitrageCycle = null;
+let phase = 'idle'; // idle | running | done
+
+// ===== INIT =====
+function loadDataset(idx) {
+  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  if(idx===3) generateRandom();
+  dataset = DATASETS[idx];
+  resetAll();
+  buildGraph();
+  renderRatesTable();
+  renderTicker();
+}
+
+function buildGraph() {
+  currencies = dataset.currencies;
+  edges = dataset.rates.map(([from,to,rate])=>({from,to,rate,w:-Math.log(rate)}));
+  // Layout nodes in circle
+  const cx=300, cy=200, r=140;
+  currencies.forEach((c,i)=>{
+    const angle = (2*Math.PI*i/currencies.length) - Math.PI/2;
+    nodePos[c] = {x: cx+r*Math.cos(angle), y: cy+r*Math.sin(angle)};
+  });
+  dist = {}; pred = {};
+  currencies.forEach(c=>{ dist[c]=Infinity; pred[c]=null; });
+  dist[currencies[0]] = 0;
+  renderDistGrid();
+  drawGraph();
+}
+
+function resetAll() {
+  clearTimeout(animTimer);
+  animTimer = null;
+  stepIdx = 0; iterSteps = [];
+  highlightEdge = null; arbitrageCycle = null;
+  phase = 'idle';
+  currencies.forEach(c=>{ dist[c]=Infinity; pred[c]=null; });
+  if(currencies.length) dist[currencies[0]]=0;
+  document.getElementById('iterLabel').textContent = 'Iter: 0 / 0';
+  document.getElementById('statusLabel').textContent = 'IDLE';
+  document.getElementById('btnRun').disabled = false;
+  document.getElementById('btnStep').disabled = false;
+  setResult('neutral','// Menunggu Analisis...','Pilih dataset dan tekan RUN untuk memulai.');
+  renderDistGrid();
+  drawGraph();
+}
+
+// ===== BELLMAN-FORD PRE-COMPUTE =====
+function computeSteps() {
+  const V = currencies.length;
+  let d = {}, p = {};
+  currencies.forEach(c=>{ d[c]=Infinity; p[c]=null; });
+  d[currencies[0]] = 0;
+  iterSteps = [];
+  iterSteps.push({type:'init', dist:{...d}, pred:{...p}});
+
+  for(let iter=1; iter<=V; iter++) {
+    let anyRelax = false;
+    for(let e of edges) {
+      const newD = d[e.from] + e.w;
+      if(d[e.from] !== Infinity && newD < d[e.to] - 1e-10) {
+        const old = d[e.to];
+        d[e.to] = newD;
+        p[e.to] = e.from;
+        anyRelax = true;
+        iterSteps.push({
+          type: iter < V ? 'relax' : 'negcycle',
+          iter, edge:e, oldDist:old, newDist:newD,
+          dist:{...d}, pred:{...p}
+        });
+      } else {
+        iterSteps.push({
+          type:'check', iter, edge:e,
+          dist:{...d}, pred:{...p}
+        });
+      }
+    }
+    if(!anyRelax && iter < V) {
+      iterSteps.push({type:'early_stop', iter, dist:{...d}, pred:{...p}});
+      break;
+    }
+    if(iter === V && anyRelax) {
+      // Find cycle
+      const cycle = traceCycle(p, e => e);
+      iterSteps.push({type:'found', iter, dist:{...d}, pred:{...p}, cycle});
+    }
+  }
+  iterSteps.push({type:'done', dist:{...d}, pred:{...p}});
+}
+
+function traceCycle(pred, _) {
+  // Find node in negative cycle
+  let V = currencies.length;
+  let d2 = {}, p2 = {};
+  currencies.forEach(c=>{ d2[c]=Infinity; p2[c]=null; });
+  d2[currencies[0]] = 0;
+  let last = null;
+  for(let i=0;i<V;i++) {
+    last = null;
+    for(let e of edges) {
+      if(d2[e.from]!==Infinity && d2[e.from]+e.w < d2[e.to]-1e-10) {
+        d2[e.to] = d2[e.from]+e.w;
+        p2[e.to] = e.from;
+        last = e.to;
+      }
+    }
+  }
+  if(!last) return null;
+  // Walk back V steps to ensure we're in cycle
+  let x = last;
+  for(let i=0;i<V;i++) x = p2[x];
+  // Now trace the cycle
+  const cycle = [];
+  let cur = x;
+  do {
+    cycle.unshift(cur);
+    cur = p2[cur];
+  } while(cur !== x && cycle.length <= V+1);
+  cycle.unshift(x);
+  return cycle;
+}
+
+// ===== ANIMATION =====
+function startAnimation() {
+  if(phase === 'running') { clearTimeout(animTimer); phase='idle'; document.getElementById('btnRun').textContent='▶ RUN'; return; }
+  computeSteps();
+  stepIdx = 0;
+  phase = 'running';
+  document.getElementById('btnRun').textContent='⏸ PAUSE';
+  document.getElementById('statusLabel').textContent = 'RUNNING';
+  runStep();
+}
+
+function runStep() {
+  if(stepIdx >= iterSteps.length || phase !== 'running') return;
+  applyStep(iterSteps[stepIdx]);
+  stepIdx++;
+  document.getElementById('iterLabel').textContent = `Step: ${stepIdx} / ${iterSteps.length}`;
+  const speed = parseInt(document.getElementById('speedSel').value);
+  animTimer = setTimeout(runStep, speed);
+}
+
+function stepOnce() {
+  if(iterSteps.length === 0) computeSteps();
+  if(phase==='running') { clearTimeout(animTimer); phase='paused'; document.getElementById('btnRun').textContent='▶ RUN'; }
+  if(stepIdx < iterSteps.length) {
+    applyStep(iterSteps[stepIdx]);
+    stepIdx++;
+    document.getElementById('iterLabel').textContent = `Step: ${stepIdx} / ${iterSteps.length}`;
+  }
+}
+
+function applyStep(s) {
+  dist = {...s.dist};
+  pred = {...s.pred};
+  highlightEdge = s.edge || null;
+
+  if(s.type === 'init') {
+    addLog(`<span class="hl">INIT</span> dist[${currencies[0]}]=0, semua lain=∞`, 0);
+  } else if(s.type === 'relax') {
+    addLog(`Iter <span class="hl-b">${s.iter}</span> — Relax <span class="hl">${s.edge.from}→${s.edge.to}</span> rate=${s.edge.rate.toFixed(4)} w=${s.edge.w.toFixed(4)} → dist[${s.edge.to}] <span class="hl-r">${s.oldDist===Infinity?'∞':s.oldDist.toFixed(4)}</span> → <span class="hl-g">${s.newDist.toFixed(4)}</span>`, s.iter);
+  } else if(s.type === 'negcycle') {
+    addLog(`🚨 Iter <span class="hl-g">${s.iter}</span> (ke-V) — Masih bisa relax <span class="hl">${s.edge.from}→${s.edge.to}</span> → <span class="hl-g">NEGATIVE CYCLE DETECTED!</span>`, s.iter);
+  } else if(s.type === 'early_stop') {
+    addLog(`✓ Iter <span class="hl-b">${s.iter}</span> — Tidak ada relaksasi. Konvergen lebih awal.`, s.iter);
+  } else if(s.type === 'found') {
+    arbitrageCycle = s.cycle;
+    const profit = computeProfit(s.cycle);
+    showResult(s.cycle, profit);
+    phase = 'done';
+    document.getElementById('btnRun').textContent='▶ RUN';
+    document.getElementById('statusLabel').textContent = '✓ DONE — ARBITRAGE FOUND';
+  } else if(s.type === 'done' && !arbitrageCycle) {
+    phase = 'done';
+    document.getElementById('btnRun').textContent='▶ RUN';
+    document.getElementById('statusLabel').textContent = '✓ DONE — NO ARBITRAGE';
+    setResult('none','// Tidak Ada Arbitrase','Pasar efisien. Tidak ditemukan negative cycle pada graph nilai tukar ini.');
+    addLog(`✓ <span class="hl-b">SELESAI</span> — Tidak ada negative cycle. Pasar dalam keseimbangan.`, 0);
+  }
+
+  renderDistGrid();
+  drawGraph();
+}
+
+function computeProfit(cycle) {
+  if(!cycle || cycle.length < 2) return 0;
+  let p = 1;
+  for(let i=0;i<cycle.length-1;i++) {
+    const e = edges.find(e=>e.from===cycle[i]&&e.to===cycle[i+1]);
+    if(e) p *= e.rate;
+  }
+  return ((p-1)*100);
+}
+
+function showResult(cycle, profit) {
+  const card = document.getElementById('resultCard');
+  card.className = 'result-card found';
+  document.getElementById('resultTitle').className = 'result-title found';
+  document.getElementById('resultTitle').textContent = '// ⚡ ARBITRASE DITEMUKAN!';
+  document.getElementById('resultBody').innerHTML = `
+    <div class="profit-big">+${profit.toFixed(3)}%</div>
+    <div class="profit-sub">Profit per siklus konversi</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px">PATH ARBITRASE:</div>
+    <div class="cycle-path">
+      ${cycle.map((c,i)=>`
+        <span class="cycle-node">${c}</span>
+        ${i<cycle.length-1?'<span class="cycle-arrow">→</span>':''}
+      `).join('')}
+    </div>
+    <div style="margin-top:14px;font-size:11px;color:var(--muted)">
+      Dengan modal <strong style="color:var(--text)">$10,000</strong> → profit <strong style="color:var(--green)">$${(profit*100).toFixed(0)}</strong> per siklus
+    </div>
+  `;
+  addLog(`💰 <span class="hl-g">ARBITRASE: ${cycle.join('→')} | Profit: +${profit.toFixed(3)}%</span>`, 0);
+}
+
+function setResult(type, title, body) {
+  const card = document.getElementById('resultCard');
+  card.className = `result-card ${type}`;
+  document.getElementById('resultTitle').className = `result-title ${type}`;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultBody').innerHTML = `<div style="font-size:13px;color:var(--muted)">${body}</div>`;
+}
+
+// ===== LOGGING =====
+function addLog(html, iter) {
+  const list = document.getElementById('iterList');
+  const item = document.createElement('div');
+  item.className = 'iter-item';
+  item.innerHTML = `<span class="iter-num">#${String(stepIdx).padStart(3,'0')}</span><div class="iter-text">${html}</div>`;
+  list.appendChild(item);
+  list.scrollTop = list.scrollHeight;
+}
+
+// ===== RENDER DIST GRID =====
+function renderDistGrid() {
+  const g = document.getElementById('distGrid');
+  g.innerHTML = currencies.map(c => {
+    const v = dist[c];
+    const cls = v===Infinity?'inf': v<0?'neg':'updated';
+    return `<div class="dist-cell">
+      <div class="dist-cell-curr">${c}</div>
+      <div class="dist-cell-val ${cls}">${v===Infinity?'∞':v.toFixed(4)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== RATES TABLE =====
+function renderRatesTable() {
+  const tbody = document.getElementById('ratesTbody');
+  tbody.innerHTML = dataset.rates.map(([from,to,rate]) => {
+    const w = -Math.log(rate);
+    const neg = w < 0;
+    return `<tr class="${neg?'rate-row-arb':''}">
+      <td class="rate-from">${from}</td>
+      <td class="rate-to">${to}</td>
+      <td class="rate-val">${rate.toFixed(5)}</td>
+      <td class="rate-log ${neg?'rate-neg':''}">${w.toFixed(5)}</td>
+      <td style="font-size:10px">${neg?'<span style="color:var(--green)">● NEG EDGE</span>':'<span style="color:var(--muted)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== TICKER =====
+function renderTicker() {
+  const t = document.getElementById('ticker');
+  const items = [...dataset.rates, ...dataset.rates];
+  t.innerHTML = items.map(([f,to,r]) => {
+    const chg = ((Math.random()-0.48)*0.5).toFixed(2);
+    const up = chg > 0;
+    return `<div class="tick-item">
+      <span class="tick-pair">${f}/${to}</span>
+      <span class="tick-rate">${r.toFixed(4)}</span>
+      <span class="tick-chg ${up?'up':'dn'}">${up?'▲':'▼'}${Math.abs(chg)}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ===== CANVAS DRAWING =====
+const canvas = document.getElementById('graphCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  // Re-layout nodes
+  if(currencies.length) {
+    const cx=canvas.width/2, cy=canvas.height/2, r=Math.min(cx,cy)-70;
+    currencies.forEach((c,i)=>{
+      const angle = (2*Math.PI*i/currencies.length) - Math.PI/2;
+      nodePos[c] = {x: cx+r*Math.cos(angle), y: cy+r*Math.sin(angle)};
+    });
+    drawGraph();
+  }
+}
+
+function drawGraph() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle = '#0b1525';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid dots
+  ctx.fillStyle = 'rgba(26,48,96,0.4)';
+  for(let x=20;x<W;x+=30) for(let y=20;y<H;y+=30)
+    ctx.fillRect(x,y,1,1);
+
+  if(!currencies.length) return;
+
+  // Draw edges
+  for(let e of edges) {
+    const p1 = nodePos[e.from], p2 = nodePos[e.to];
+    if(!p1||!p2) continue;
+    const isHL = highlightEdge && highlightEdge.from===e.from && highlightEdge.to===e.to;
+    const inCycle = arbitrageCycle && isEdgeInCycle(e, arbitrageCycle);
+    const isNeg = e.w < 0;
+
+    // Arrow
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len, uy=dy/len;
+    const nodeR=26, gap=6;
+    const sx=p1.x+ux*(nodeR+gap), sy=p1.y+uy*(nodeR+gap);
+    const ex=p2.x-ux*(nodeR+gap+10), ey=p2.y-uy*(nodeR+gap+10);
+
+    ctx.beginPath();
+    ctx.moveTo(sx,sy);
+    ctx.lineTo(ex,ey);
+
+    if(inCycle) {
+      ctx.strokeStyle = '#10e880';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#10e880';
+      ctx.shadowBlur = 12;
+    } else if(isHL) {
+      ctx.strokeStyle = '#f0c040';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#f0c040';
+      ctx.shadowBlur = 10;
+    } else if(isNeg) {
+      ctx.strokeStyle = 'rgba(16,232,128,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.strokeStyle = 'rgba(26,60,100,0.7)';
+      ctx.lineWidth = 1;
+      ctx.shadowBlur = 0;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Arrowhead
+    const angle = Math.atan2(ey-sy, ex-sx);
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex-10*Math.cos(angle-0.4), ey-10*Math.sin(angle-0.4));
+    ctx.lineTo(ex-10*Math.cos(angle+0.4), ey-10*Math.sin(angle+0.4));
+    ctx.closePath();
+    ctx.fillStyle = inCycle?'#10e880': isHL?'#f0c040': isNeg?'rgba(16,232,128,0.35)':'rgba(26,60,100,0.7)';
+    ctx.fill();
+
+    // Rate label
+    const mx=(sx+ex)/2, my=(sy+ey)/2;
+    const perp = {x:-uy*12, y:ux*12};
+    ctx.font = '10px DM Mono';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const label = e.rate >= 100 ? e.rate.toFixed(1) : e.rate.toFixed(4);
+    ctx.fillStyle = inCycle?'#10e880': isHL?'#f0c040': 'rgba(74,96,128,0.8)';
+    ctx.fillText(label, mx+perp.x, my+perp.y);
+  }
+
+  // Draw nodes
+  for(let c of currencies) {
+    const p = nodePos[c];
+    if(!p) continue;
+    const d = dist[c];
+    const inCycle = arbitrageCycle && arbitrageCycle.includes(c);
+    const isSrc = c === currencies[0];
+
+    // Outer glow
+    if(inCycle) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 34, 0, Math.PI*2);
+      const g2 = ctx.createRadialGradient(p.x,p.y,10,p.x,p.y,34);
+      g2.addColorStop(0,'rgba(16,232,128,0.2)');
+      g2.addColorStop(1,'transparent');
+      ctx.fillStyle=g2; ctx.fill();
+    } else if(isSrc) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 34, 0, Math.PI*2);
+      const g3 = ctx.createRadialGradient(p.x,p.y,10,p.x,p.y,34);
+      g3.addColorStop(0,'rgba(240,192,64,0.15)');
+      g3.addColorStop(1,'transparent');
+      ctx.fillStyle=g3; ctx.fill();
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 26, 0, Math.PI*2);
+    const grad = ctx.createRadialGradient(p.x-6,p.y-6,2,p.x,p.y,26);
+    if(inCycle) {
+      grad.addColorStop(0,'#1a4a30'); grad.addColorStop(1,'#0a1e14');
+    } else if(isSrc) {
+      grad.addColorStop(0,'#3a2e08'); grad.addColorStop(1,'#1a1408');
+    } else {
+      grad.addColorStop(0,'#0f1e35'); grad.addColorStop(1,'#070e1a');
+    }
+    ctx.fillStyle = grad; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(p.x, p.y, 26, 0, Math.PI*2);
+    ctx.strokeStyle = inCycle?'#10e880': isSrc?'#f0c040':'#1a3060';
+    ctx.lineWidth = inCycle?2.5: isSrc?2:1;
+    if(inCycle||isSrc) { ctx.shadowColor=ctx.strokeStyle; ctx.shadowBlur=8; }
+    ctx.stroke(); ctx.shadowBlur=0;
+
+    // Currency label
+    ctx.font = 'bold 13px DM Mono';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle = inCycle?'#10e880': isSrc?'#f0c040':'#cdd8ee';
+    ctx.fillText(c, p.x, p.y-4);
+
+    // Distance
+    ctx.font = '9px DM Mono';
+    ctx.fillStyle = d===Infinity?'#2a4060': d<0?'#10e880':'#4a6080';
+    ctx.fillText(d===Infinity?'∞':d.toFixed(3), p.x, p.y+10);
+  }
+}
+
+function isEdgeInCycle(e, cycle) {
+  if(!cycle) return false;
+  for(let i=0;i<cycle.length-1;i++)
+    if(cycle[i]===e.from && cycle[i+1]===e.to) return true;
+  return false;
+}
+
+// ===== INIT =====
+window.addEventListener('resize', resizeCanvas);
+setTimeout(()=>{
+  resizeCanvas();
+  loadDataset(0);
+}, 50);
+</script>
+</body>
+</html>
