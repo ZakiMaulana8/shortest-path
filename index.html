@@ -964,7 +964,7 @@
     function heuristic(r, c) {
       return Math.abs(r - endCell.r) + Math.abs(c - endCell.c); // Manhattan
     }
-   
+
     function astar() {
       if (!startCell || !endCell) return null;
       const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
