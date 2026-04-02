@@ -3,718 +3,809 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hospital Pathfinder</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Navigasi RSD Wongsonegoro Semarang</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#eef0f4;--paper:#fff;--ink:#1a1f2e;--ink2:#4a5268;--ink3:#8a90a8;
-  --border:#d4d8e2;--border2:#b8bece;--accent:#2563eb;
-  --bfs:#f59e0b;--bfs-dim:rgba(245,158,11,.15);
-  --astr:#8b5cf6;--astr-dim:rgba(139,92,246,.14);
-  --green:#10b981;
-}
+:root{--bg:#f0f4f8;--paper:#fff;--ink:#0f172a;--ink2:#475569;--ink3:#94a3b8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--blue:#2563eb;--path:#0ea5e9;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--ink);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;}
-.topbar{background:var(--paper);border-bottom:2px solid var(--ink);height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand-icon{width:30px;height:30px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;font-family:'Syne',sans-serif;}
-.brand-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;}
-.brand-sub{font-size:.55rem;color:var(--ink3);letter-spacing:.15em;text-transform:uppercase;}
-.badges{display:flex;gap:6px;}
-.badge{padding:3px 9px;border-radius:3px;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid;}
-.badge.bfs{border-color:var(--bfs);color:var(--bfs);background:var(--bfs-dim);}
-.badge.astr{border-color:var(--astr);color:var(--astr);background:var(--astr-dim);}
+body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--paper);border-bottom:3px solid var(--red);height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.07);}
+.brand{display:flex;align-items:center;gap:9px;}
+.brand-ico{width:32px;height:32px;background:var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;}
+.brand-name{font-weight:800;font-size:.85rem;line-height:1.25;}
+.brand-sub{font-size:.55rem;color:var(--ink3);}
 .layout{display:flex;flex:1;overflow:hidden;}
-.sidebar{width:248px;flex-shrink:0;background:var(--paper);border-right:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:13px;overflow-y:auto;}
-.s-lbl{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;}
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.mode-btn{padding:8px 4px;border:1px solid var(--border2);background:transparent;color:var(--ink2);font-family:'DM Mono',monospace;font-size:.62rem;cursor:pointer;border-radius:3px;text-align:center;line-height:1.5;transition:all .15s;}
-.mode-btn:hover{border-color:var(--accent);color:var(--accent);}
-.mode-btn.active{border-color:var(--accent);background:rgba(37,99,235,.07);color:var(--accent);font-weight:500;}
-.mode-btn.active.em{border-color:#ef4444;background:rgba(239,68,68,.07);color:#ef4444;}
-.sel-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:9px;display:flex;flex-direction:column;gap:5px;}
-.sel-row{display:flex;align-items:center;gap:7px;font-size:.65rem;}
-.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.sdot.s{background:#2563eb;}.sdot.e{background:#ef4444;}
-.sel-val{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sel-empty{color:var(--ink3);font-style:italic;}
-.btn-run{padding:11px;background:var(--ink);border:none;color:#fff;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.04em;cursor:pointer;border-radius:4px;transition:all .2s;}
-.btn-run:hover:not(:disabled){background:#2d3550;box-shadow:0 4px 12px rgba(0,0,0,.15);}
-.btn-run:disabled{opacity:.35;cursor:not-allowed;}
-.btn-sec{padding:7px;background:transparent;border:1px solid var(--border2);color:var(--ink2);font-family:'DM Mono',monospace;font-size:.62rem;cursor:pointer;border-radius:3px;transition:all .15s;}
-.btn-sec:hover{border-color:var(--ink);color:var(--ink);}
-.stat-card{border:1px solid var(--border);border-radius:4px;padding:9px;position:relative;overflow:hidden;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
-.stat-card.bfs::before{background:var(--bfs);}.stat-card.astr::before{background:var(--astr);}
-.sc-title{font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:5px;}
-.stat-card.bfs .sc-title{color:var(--bfs);}.stat-card.astr .sc-title{color:var(--astr);}
-.sc-row{display:flex;justify-content:space-between;font-size:.6rem;color:var(--ink2);margin-top:2px;}
-.sc-row b{color:var(--ink);font-weight:500;}
-.winner{margin-top:6px;padding:6px 10px;border-radius:3px;font-size:.58rem;text-align:center;letter-spacing:.1em;text-transform:uppercase;display:none;}
-.winner.show{display:block;}
-.winner.bfs{background:var(--bfs-dim);color:var(--bfs);border:1px solid var(--bfs);}
-.winner.astr{background:var(--astr-dim);color:var(--astr);border:1px solid var(--astr);}
-.winner.tie{background:#f0fdf4;color:var(--green);border:1px solid var(--green);}
-.walk{display:none;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;}
-.walk.show{display:block;}
-.walk-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;margin-bottom:8px;}
-.walk-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.wc{border:1px solid var(--border);border-radius:3px;padding:8px;}
-.wc-title{font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
-.wc.bfs .wc-title{color:var(--bfs);}.wc.astr .wc-title{color:var(--astr);}
-.wrow{display:flex;justify-content:space-between;font-size:.6rem;color:var(--ink2);margin-top:2px;}
-.wrow .wv{color:var(--ink);font-weight:500;}.wrow .wv.g{color:var(--green);}
-.legend{display:flex;flex-direction:column;gap:4px;}
-.leg{display:flex;align-items:center;gap:7px;font-size:.58rem;color:var(--ink2);}
-.lsw{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
-.content{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
-.info-bar{background:var(--paper);border:1px solid var(--border);border-radius:4px;padding:9px 13px;font-size:.63rem;color:var(--ink2);display:flex;align-items:center;gap:8px;}
+.sidebar{width:255px;flex-shrink:0;background:var(--paper);border-right:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
+.s-sec{display:flex;flex-direction:column;gap:6px;}
+.s-ttl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:3px;border-bottom:1px solid var(--border);}
+.sel-lbl{font-size:.66rem;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:5px;}
+.dot-s{width:7px;height:7px;border-radius:50%;background:#2563eb;flex-shrink:0;}
+.dot-e{width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;}
+select{width:100%;padding:7px 26px 7px 9px;border:1.5px solid #cbd5e1;border-radius:6px;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+select:focus{outline:none;border-color:var(--blue);}
+.preview{background:#f8fafc;border:1.5px solid var(--border);border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:4px;}
+.prev-row{display:flex;align-items:center;gap:6px;font-size:.68rem;}
+.prev-val{font-weight:600;color:var(--ink);}
+.prev-empty{color:var(--ink3);font-style:italic;}
+.btn-go{padding:10px;background:var(--red);border:none;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;border-radius:7px;transition:all .2s;box-shadow:0 2px 8px rgba(220,38,38,.22);}
+.btn-go:hover:not(:disabled){background:#b91c1c;transform:translateY(-1px);}
+.btn-go:disabled{opacity:.35;cursor:not-allowed;}
+.btn-rst{padding:6px;background:transparent;border:1.5px solid #cbd5e1;color:var(--ink2);font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer;border-radius:6px;}
+.btn-rst:hover{border-color:var(--ink);color:var(--ink);}
+.result{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #bfdbfe;border-radius:8px;padding:10px;display:none;}
+.result.show{display:block;}
+.res-ttl{font-weight:700;font-size:.7rem;color:var(--blue);margin-bottom:6px;}
+.res-row{display:flex;justify-content:space-between;font-size:.65rem;color:var(--ink2);margin-top:3px;}
+.res-row b{color:var(--ink);font-weight:600;}
+.res-row b.g{color:var(--green);}
+.steps{background:#f8fafc;border:1.5px solid var(--border);border-radius:7px;padding:9px;display:none;max-height:160px;overflow-y:auto;}
+.steps.show{display:block;}
+.steps-ttl{font-size:.58rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
+.step{display:flex;gap:6px;align-items:flex-start;font-size:.65rem;color:var(--ink2);padding:3px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-n{width:16px;height:16px;border-radius:50%;background:var(--blue);color:#fff;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-n.last{background:var(--red);}
+.leg-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.leg{display:flex;align-items:center;gap:4px;font-size:.56rem;color:var(--ink2);}
+.lsw{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px;gap:8px;}
+.infobar{background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:.65rem;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .idot{width:6px;height:6px;border-radius:50%;background:var(--ink3);flex-shrink:0;}
-.idot.on{background:var(--green);animation:blink 1s infinite;}
+.idot.on{background:var(--path);animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-.col-labels{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.col-lbl{display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;}
-.col-lbl .cd{width:9px;height:9px;border-radius:50%;}
-.col-lbl .cd.bfs{background:var(--bfs);}.col-lbl .cd.astr{background:var(--astr);}
-.col-lbl .cs{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--ink3);font-weight:400;}
-.canvases{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.cv-wrap{background:var(--paper);border:1px solid var(--border);border-radius:5px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);position:relative;}
-.cv-wrap canvas{display:block;width:100%;height:auto;cursor:pointer;}
-.cv-tag{position:absolute;top:7px;right:7px;padding:2px 7px;border-radius:2px;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
-.cv-tag.bfs{background:var(--bfs-dim);color:var(--bfs);border:1px solid var(--bfs);}
-.cv-tag.astr{background:var(--astr-dim);color:var(--astr);border:1px solid var(--astr);}
+.map-wrap{flex:1;background:#8fa4b8;border:1px solid var(--border);border-radius:9px;overflow:hidden;position:relative;}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.map-credit{position:absolute;bottom:5px;right:7px;font-size:.5rem;color:rgba(255,255,255,.8);padding:2px 5px;border-radius:3px;pointer-events:none;}
 </style>
 </head>
 <body>
-
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon">✚</div>
-    <div><div class="brand-title">Hospital Pathfinder</div><div class="brand-sub">Navigasi Denah RS · BFS vs A*</div></div>
+    <div class="brand-ico">✚</div>
+    <div><div class="brand-name">RSD K.R.M.T. Wongsonegoro</div><div class="brand-sub">Sistem Navigasi • Kota Semarang</div></div>
   </div>
-  <div class="badges"><div class="badge bfs">BFS</div><div class="badge astr">A*</div></div>
+  <div style="font-size:.6rem;color:var(--ink3);font-family:'DM Mono',monospace;">Jl. Fatmawati No.1 · Tembalang · Semarang</div>
 </div>
-
 <div class="layout">
 <div class="sidebar">
-  <div><div class="s-lbl">Mode Klik</div>
-    <div class="mode-grid">
-      <button class="mode-btn active" id="mb-s" onclick="setMode('start')">🔵 Titik<br>Awal</button>
-      <button class="mode-btn em" id="mb-e" onclick="setMode('end')">🔴 Titik<br>Tujuan</button>
+  <div class="s-sec">
+    <div class="s-ttl">📍 Pilih Rute</div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="sel-lbl"><div class="dot-s"></div>Lokasi Awal</div>
+      <select id="sel-s" onchange="onSel()"><option value="">— Pilih lokasi —</option></select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="sel-lbl"><div class="dot-e"></div>Lokasi Tujuan</div>
+      <select id="sel-e" onchange="onSel()"><option value="">— Pilih lokasi —</option></select>
     </div>
   </div>
-  <div><div class="s-lbl">Rute Dipilih</div>
-    <div class="sel-box">
-      <div class="sel-row"><div class="sdot s"></div><span class="sel-val" id="ds"><span class="sel-empty">Belum dipilih</span></span></div>
-      <div class="sel-row"><div class="sdot e"></div><span class="sel-val" id="de"><span class="sel-empty">Belum dipilih</span></span></div>
-    </div>
+  <div class="preview">
+    <div class="prev-row"><span>🔵</span><span id="pv-s"><span class="prev-empty">Belum dipilih</span></span></div>
+    <div style="width:100%;height:1px;background:#e2e8f0;"></div>
+    <div class="prev-row"><span>🔴</span><span id="pv-e"><span class="prev-empty">Belum dipilih</span></span></div>
   </div>
-  <div style="display:flex;flex-direction:column;gap:5px;">
-    <button class="btn-run" id="btn-run" onclick="runBoth()" disabled>▶ CARI JALUR</button>
-    <button class="btn-sec" onclick="clearAll()">↺ Reset</button>
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <button class="btn-go" id="btn-go" onclick="findPath()" disabled>🧭 TEMUKAN JALUR</button>
+    <button class="btn-rst" onclick="resetAll()">↺ Reset</button>
   </div>
-  <div><div class="s-lbl">Perbandingan</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div class="stat-card bfs"><div class="sc-title">BFS</div>
-        <div class="sc-row"><span>Dikunjungi</span><b id="b-v">—</b></div>
-        <div class="sc-row"><span>Panjang jalur</span><b id="b-p">—</b></div>
-        <div class="sc-row"><span>Waktu proses</span><b id="b-t">—</b></div>
-      </div>
-      <div class="stat-card astr"><div class="sc-title">A* (Manhattan)</div>
-        <div class="sc-row"><span>Dikunjungi</span><b id="a-v">—</b></div>
-        <div class="sc-row"><span>Panjang jalur</span><b id="a-p">—</b></div>
-        <div class="sc-row"><span>Waktu proses</span><b id="a-t">—</b></div>
-      </div>
-      <div class="winner" id="winner"></div>
-    </div>
+  <div class="result" id="result">
+    <div class="res-ttl">✅ Jalur Ditemukan</div>
+    <div class="res-row"><span>Estimasi jarak</span><b id="r-dist">—</b></div>
+    <div class="res-row"><span>Estimasi waktu</span><b class="g" id="r-time">—</b></div>
+    <div class="res-row"><span>Langkah</span><b id="r-steps">—</b></div>
   </div>
-  <div class="walk" id="walk">
-    <div class="walk-title">🚶 Estimasi Jalan Kaki</div>
-    <div class="walk-grid">
-      <div class="wc bfs"><div class="wc-title">BFS</div>
-        <div class="wrow"><span>Jarak</span><span class="wv" id="wb-m">—</span></div>
-        <div class="wrow"><span>Waktu</span><span class="wv" id="wb-t">—</span></div>
-      </div>
-      <div class="wc astr"><div class="wc-title">A*</div>
-        <div class="wrow"><span>Jarak</span><span class="wv" id="wa-m">—</span></div>
-        <div class="wrow"><span>Waktu</span><span class="wv" id="wa-t">—</span></div>
-      </div>
-    </div>
+  <div class="steps" id="steps-box">
+    <div class="steps-ttl">🗺️ Petunjuk Arah</div>
+    <div id="steps-list"></div>
   </div>
-  <div><div class="s-lbl">Legenda</div>
-    <div class="legend">
-      <div class="leg"><div class="lsw" style="background:#e8eef6;border-color:#b0bcd4"></div>Koridor (jalur jalan)</div>
-      <div class="leg"><div class="lsw" style="background:#9aa3b2"></div>Dinding</div>
-      <div class="leg"><div class="lsw" style="background:#fee2e2"></div>IGD</div>
-      <div class="leg"><div class="lsw" style="background:#fce7f3"></div>ICU</div>
-      <div class="leg"><div class="lsw" style="background:#ede9fe"></div>Laboratorium</div>
-      <div class="leg"><div class="lsw" style="background:#dbeafe"></div>Farmasi</div>
-      <div class="leg"><div class="lsw" style="background:#d1fae5"></div>Poli Umum</div>
-      <div class="leg"><div class="lsw" style="background:#fef3c7"></div>Radiologi</div>
-      <div class="leg"><div class="lsw" style="background:rgba(245,158,11,.6)"></div>BFS Path</div>
-      <div class="leg"><div class="lsw" style="background:rgba(139,92,246,.6)"></div>A* Path</div>
+  <div class="s-sec">
+    <div class="s-ttl">🎨 Keterangan</div>
+    <div class="leg-grid">
+      <div class="leg"><div class="lsw" style="background:#dc2626"></div>IGD / IBS / ICU</div>
+      <div class="leg"><div class="lsw" style="background:#16a34a"></div>Paviliun / Hijau</div>
+      <div class="leg"><div class="lsw" style="background:#ea580c"></div>Rawat Jalan</div>
+      <div class="leg"><div class="lsw" style="background:#ca8a04"></div>Fasilitas</div>
+      <div class="leg"><div class="lsw" style="background:rgba(251,146,60,.5)"></div>Area Parkir</div>
+      <div class="leg"><div class="lsw" style="background:#15803d"></div>Masjid</div>
+      <div class="leg"><div class="lsw" style="background:#0ea5e9"></div>Jalur Navigasi</div>
     </div>
   </div>
 </div>
-
 <div class="content">
-  <div class="info-bar"><div class="idot" id="idot"></div><span id="itext">Klik ruangan di denah untuk memilih titik awal.</span></div>
-  <div class="col-labels">
-    <div class="col-lbl"><div class="cd bfs"></div>BFS <span class="cs">— Breadth-First Search</span></div>
-    <div class="col-lbl"><div class="cd astr"></div>A* <span class="cs">— Heuristic Manhattan</span></div>
-  </div>
-  <div class="canvases">
-    <div class="cv-wrap"><canvas id="cv-bfs"></canvas><div class="cv-tag bfs">BFS</div></div>
-    <div class="cv-wrap"><canvas id="cv-astr"></canvas><div class="cv-tag astr">A*</div></div>
+  <div class="infobar"><div class="idot" id="idot"></div><span id="itext">Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".</span></div>
+  <div class="map-wrap" id="mapwrap">
+    <canvas id="cv"></canvas>
+    <div class="map-credit">RSD K.R.M.T. Wongsonegoro · Semarang</div>
   </div>
 </div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════════
-//  CELL TYPES
-// ════════════════════════════════════════════════════
-const W=0,   // solid wall
-      H=1,   // horizontal corridor
-      V=2,   // vertical corridor
-      D=3,   // doorway (1-cell opening in a room wall)
-      // Rooms (all solid — not walkable)
-      IGD=10,TRIAGE=11,ICU=12,NURSE=13,
-      LAB=14,RADIO=15,POLIA=16,POLIB=17,
-      FARMASI=18,RESEP=19,KANTOR=20,
-      TOILET=21,LIFT=22,TANGGA=23,ENTRANCE=24;
+// ═══════════════════════════════════════════════════════════════
+// Sistem koordinat logis: 800 × 680 px
+// Bangunan & jalan digambar langsung ke canvas (bukan grid sel)
+// sesuai proporsi gambar denah asli.
+//
+// Layout gambar asli (dari kiri ke kanan, atas ke bawah):
+//  UTARA = atas | Jl.Fatmawati = kanan | MASUK = kanan bawah
+//
+// Jalan internal membentuk grid tidak seragam sesuai aslinya.
+// Setiap bangunan punya ukuran unik sesuai gambar.
+// ═══════════════════════════════════════════════════════════════
 
-const WALKABLE=new Set([H,V,D]);
-const IS_ROOM=t=>t>=10;
+// Ukuran canvas logis
+const LW = 800, LH = 680;
 
-const RCOLOR={
-  [W]:'#8e97a8',[H]:'#e8edf5',[V]:'#e8edf5',[D]:'#d0d8e8',
-  [IGD]:'#fee2e2',[TRIAGE]:'#ffe4e6',[ICU]:'#fce7f3',[NURSE]:'#fdf4ff',
-  [LAB]:'#ede9fe',[RADIO]:'#fef3c7',[POLIA]:'#d1fae5',[POLIB]:'#dcfce7',
-  [FARMASI]:'#dbeafe',[RESEP]:'#f0f9ff',[KANTOR]:'#f8fafc',
-  [TOILET]:'#e0f2fe',[LIFT]:'#f0fdf4',[TANGGA]:'#f1f5f9',[ENTRANCE]:'#fff7ed',
-};
-const RNAME={
-  [IGD]:'IGD (Gawat Darurat)',[TRIAGE]:'Ruang Triage',[ICU]:'ICU',
-  [NURSE]:'Nurse Station',[LAB]:'Laboratorium',[RADIO]:'Radiologi',
-  [POLIA]:'Poli Umum',[POLIB]:'Poli Spesialis',[FARMASI]:'Farmasi',
-  [RESEP]:'Resepsionis',[KANTOR]:'Kantor Administrasi',
-  [TOILET]:'Toilet',[LIFT]:'Lift',[TANGGA]:'Tangga',[ENTRANCE]:'Entrance',
-};
-const RLABEL={
-  [IGD]:'IGD',[TRIAGE]:'TRIAGE',[ICU]:'ICU',[NURSE]:'NURSE',
-  [LAB]:'LAB',[RADIO]:'RADIO',[POLIA]:'POLI UMUM',[POLIB]:'POLI SPES',
-  [FARMASI]:'FARMASI',[RESEP]:'RESEPSIONIS',[KANTOR]:'KANTOR',
-  [TOILET]:'WC',[LIFT]:'LIFT',[TANGGA]:'TANGGA',[ENTRANCE]:'ENTRANCE',
+// Navigasi grid (sel kecil ~5px logis)
+const GC = 160, GR = 136;
+const CW_G = LW/GC, CH_G = LH/GR; // ~5px per sel
+
+const NAV = new Uint8Array(GC * GR); // 0=tembok, 1=jalan
+const GK  = (c,r) => r*GC+c;
+
+// ── Warna bangunan ──
+const COL = {
+  road:'#d5e0ee', outer:'#7a90a4', parkir:'rgba(251,146,60,.33)',
+  red:'#dc2626', green:'#16a34a', org:'#ea580c',
+  yel:'#ca8a04', mosq:'#15803d', gray:'#6b7280', teal:'#0d9488',
+  lapangan:'rgba(134,239,172,.45)',
 };
 
-// ════════════════════════════════════════════════════
-//  MAP LAYOUT  (52 cols × 40 rows)
-//
-//  Layout blueprint:
-//
-//  row  0    : top wall
-//  row  1    : H-corridor (top)
-//  row  2-9  : Room row A  (top rooms)
-//  row 10    : H-corridor (mid-top)
-//  row 11-18 : Room row B  (middle rooms)
-//  row 19    : H-corridor (mid)
-//  row 20-27 : Room row C  (lower rooms)
-//  row 28    : H-corridor (bottom)
-//  row 29-36 : Room row D  (ground floor)
-//  row 37    : H-corridor (near bottom)
-//  row 38-39 : Entrance + exit
-//
-//  Vertical corridors at cols: 0,1, 12,13, 24,25, 36,37, 50,51
-// ════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// BANGUNAN — {x,y,w,h,label,color,rot?}
+// Koordinat pixel logis, diukur dari gambar asli
+// Bangunan berbeda-beda ukuran sesuai aslinya
+// ─────────────────────────────────────────────────────────────
+const BLDG = [
+  // ══ AREA PARKIR UTARA (baris paling atas, lebar bervariasi) ══
+  {x:12,  y:12,  w:118, h:46, label:'AREA\nPARKIR',        color:COL.parkir},
+  {x:142, y:12,  w:55,  h:46, label:'GEDUNG\nGIZI',        color:COL.yel},
+  {x:209, y:12,  w:148, h:46, label:'AREA PARKIR',         color:COL.parkir},
+  {x:369, y:12,  w:100, h:46, label:'AREA PARKIR',         color:COL.parkir},
+  {x:481, y:12,  w:100, h:46, label:'AREA PARKIR',         color:COL.parkir},
+  {x:600, y:12,  w:80,  h:46, label:'AREA\nPARKIR',        color:COL.parkir},
 
-const COLS=52, ROWS=40;
-let MAP=Array.from({length:ROWS},()=>Array(COLS).fill(W));
+  // ══ KOLOM KIRI ATAS (kecil, di bawah jalan lingkar atas) ══
+  {x:12,  y:72,  w:48,  h:32, label:'IPAL',                color:COL.yel},
+  {x:12,  y:117, w:48,  h:32, label:'K3',                  color:COL.yel},
+  {x:12,  y:162, w:48,  h:42, label:'GD. ASET\n& POOL',    color:COL.yel},
 
-const set=(r,c,t)=>{if(r>=0&&r<ROWS&&c>=0&&c<COLS)MAP[r][c]=t;};
-const fill=(r1,c1,r2,c2,t)=>{for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)set(r,c,t);};
+  // ══ UNIT KANKER TERPADU — hijau, besar, kiri ══
+  {x:12,  y:218, w:72,  h:88, label:'UNIT\nKANKER\nTERPADU',color:COL.green},
 
-// ── Horizontal corridors ──
-const HR=[1,10,19,28,37];  // corridor rows
-HR.forEach(r=>fill(r,0,r,51,H));
+  // Poli TB — merah kecil memanjang
+  {x:12,  y:319, w:48,  h:30, label:'POLI TB',             color:COL.red},
+  // Gedung Arjuna — merah, lebih besar
+  {x:12,  y:362, w:72,  h:55, label:'GEDUNG\nARJUNA',      color:COL.red},
 
-// ── Vertical corridors ──
-const VC=[0,1,12,13,24,25,36,37,50,51];
-VC.forEach(c=>fill(0,c,39,c,V));
+  // ══ KOLOM KE-2 ══
+  {x:72,  y:72,  w:60,  h:32, label:'SIMRS',               color:COL.yel},
+  {x:72,  y:117, w:60,  h:32, label:'KANTIN',              color:COL.yel},
+  {x:72,  y:162, w:60,  h:32, label:'LAUNDRY',             color:COL.yel},
+  {x:72,  y:207, w:60,  h:52, label:'GEDUNG\nNAKULA',      color:COL.org},
+  {x:72,  y:272, w:60,  h:52, label:'GEDUNG\nSADEWA',      color:COL.org},
+  {x:72,  y:337, w:60,  h:52, label:'GEDUNG\nBANOWATI',    color:COL.org},
 
-// Fix intersections to H (just pick H, both walkable)
-HR.forEach(r=>VC.forEach(c=>set(r,c,H)));
+  // ══ KOLOM KE-3 ══
+  {x:144, y:72,  w:52,  h:32, label:'SMF',                 color:COL.yel},
+  // Taman Renang (kecil, abu)
+  {x:144, y:117, w:52,  h:32, label:'TAMAN\nRENANG',       color:COL.gray},
+  {x:144, y:162, w:52,  h:52, label:'GEDUNG\nYUDISTIRA',   color:COL.org},
+  {x:144, y:227, w:52,  h:52, label:'GEDUNG\nBIMA',        color:COL.org},
+  {x:144, y:292, w:52,  h:52, label:'GEDUNG\nARIMBI',      color:COL.org},
 
-// ══ ROOM DEFINITIONS ══
-// Each room fills between corridors, leaving solid blocks
-// Doors (D) are placed on the corridor-adjacent wall of the room
-// We carve a 1-cell door opening instead of covering it with room type
+  // ══ KOMITE MEDIK + REHAB MEDIK (kolom 4, kiri-tengah) ══
+  {x:208, y:72,  w:75,  h:32, label:'GD. REHAB\nMEDIK',   color:COL.yel},
+  {x:208, y:117, w:75,  h:32, label:'KOMITE\nMEDIK',       color:COL.yel},
 
-// Helper: place room, then punch door openings into the corridor edges
-function room(r1,c1,r2,c2,type,doors){
-  fill(r1,c1,r2,c2,type);
-  // doors = [{side:'top'|'bot'|'left'|'right', offset}] 
-  // each door: place D cell at the corridor-side boundary
-  doors.forEach(d=>{
-    if(d.side==='top')    set(r1-1, d.col||Math.round((c1+c2)/2), D);
-    if(d.side==='bot')    set(r2+1, d.col||Math.round((c1+c2)/2), D);
-    if(d.side==='left')   set(d.row||Math.round((r1+r2)/2), c1-1, D);
-    if(d.side==='right')  set(d.row||Math.round((r1+r2)/2), c2+1, D);
-  });
-}
+  // ══ LAPANGAN UPACARA — besar, tengah atas ══
+  {x:295, y:72,  w:62,  h:90, label:'LAPANGAN\nUPACARA',   color:COL.lapangan},
 
-// ── ROW A: rows 2–9 ──
-room(2,2,  9,11,  IGD,    [{side:'bot',col:5},{side:'bot',col:8},{side:'right',row:5}]);
-room(2,14, 9,23,  TRIAGE, [{side:'bot',col:17},{side:'bot',col:20}]);
-room(2,26, 9,35,  ICU,    [{side:'bot',col:29},{side:'bot',col:32}]);
-room(2,38, 9,49,  NURSE,  [{side:'bot',col:41},{side:'bot',col:45}]);
+  // ══ PAVILIUN BISMA — HIJAU BESAR memanjang horizontal ══
+  {x:208, y:162, w:210, h:110, label:'PAVILIUN BISMA',     color:COL.green},
 
-// ── ROW B: rows 11–18 ──
-room(11,2,  18,11, LAB,   [{side:'top',col:5},{side:'top',col:8},{side:'bot',col:5},{side:'bot',col:8}]);
-room(11,14, 18,23, RADIO, [{side:'top',col:17},{side:'top',col:20},{side:'bot',col:17},{side:'bot',col:20}]);
-room(11,26, 18,35, POLIA, [{side:'top',col:29},{side:'top',col:32},{side:'bot',col:29},{side:'bot',col:32}]);
-room(11,38, 18,49, POLIB, [{side:'top',col:41},{side:'top',col:45},{side:'bot',col:41},{side:'bot',col:45}]);
+  // ══ PAVILIUN GATOTKACA — hijau besar kanan atas ══
+  {x:369, y:72,  w:180, h:165, label:'PAVILIUN\nGATOTKACA',color:COL.green},
 
-// ── ROW C: rows 20–27 ──
-room(20,2,  27,11, FARMASI,[{side:'top',col:5},{side:'top',col:8},{side:'bot',col:5},{side:'bot',col:8}]);
-room(20,14, 27,35, RESEP,  [{side:'top',col:19},{side:'top',col:29},{side:'bot',col:19},{side:'bot',col:29}]);
-room(20,38, 27,49, KANTOR, [{side:'top',col:41},{side:'top',col:45},{side:'bot',col:41},{side:'bot',col:45}]);
+  // ══ AREA PARKIR KANAN (vertikal, 3 blok) ══
+  {x:562, y:72,  w:98,  h:80, label:'AREA\nPARKIR',        color:COL.parkir},
+  {x:562, y:165, w:98,  h:85, label:'AREA\nPARKIR',        color:COL.parkir},
+  {x:562, y:263, w:98,  h:90, label:'AREA\nPARKIR',        color:COL.parkir},
+  {x:562, y:366, w:98,  h:85, label:'AREA\nPARKIR',        color:COL.parkir},
 
-// ── ROW D: rows 29–36 ──
-room(29,2,  36,5,  TOILET, [{side:'top',col:3}]);
-room(29,7,  36,11, TOILET, [{side:'top',col:9}]);
-room(29,14, 36,35, ENTRANCE,[{side:'top',col:19},{side:'top',col:24},{side:'top',col:29},{side:'bot',col:22}]);
-room(29,38, 33,44, LIFT,   [{side:'top',col:41}]);
-room(34,38, 36,44, TANGGA, [{side:'top',col:41}]);
-room(29,46, 36,49, TOILET, [{side:'top',col:47}]);
+  // ══ TENGAH (baris 3) ══
+  {x:208, y:285, w:82,  h:55, label:'GEDUNG\nABIMANYU',   color:COL.org},
+  {x:208, y:353, w:82,  h:55, label:'GEDUNG\nPRABU\nKRESNA',color:COL.org},
 
-// Extra vertical connecting corridors between horizontal ones (short cuts inside)
-// Only between rooms that are adjacent via the corridor
-// Corridor col 12-13 connects all rows:
-fill(2,12,9,13,V);   // between top rooms
-fill(11,12,18,13,V);
-fill(20,12,27,13,V);
-fill(29,12,36,13,V);
-// Corridor col 24-25
-fill(2,24,9,25,V);
-fill(11,24,18,25,V);
-fill(20,24,27,25,V);
-fill(29,24,36,25,V);
-// Corridor col 36-37
-fill(2,36,9,37,V);
-fill(11,36,18,37,V);
-fill(20,36,27,37,V);
-fill(29,36,36,37,V);
-// Corridor col 0-1
-fill(2,0,36,1,V);
-// Corridor col 50-51
-fill(2,50,36,51,V);
+  // Paviliun Amarta — hijau, kanan tengah
+  {x:303, y:285, w:88,  h:92, label:'PAVILIUN\nAMARTA',    color:COL.green},
 
-// Make sure intersections with H corridors are H (both walkable, just color)
-HR.forEach(r=>{
-  for(let c=0;c<COLS;c++) if(MAP[r][c]===V) MAP[r][c]=H;
-});
+  // Laborat Central — oranye, kecil
+  {x:303, y:390, w:88,  h:38, label:'LABORAT\nCENTRAL',    color:COL.org},
 
-// Entrance corridor at bottom
-fill(37,0,37,51,H);
-fill(38,20,39,29,H); // exit path
+  // ══ BARIS BAWAH KIRI ══
+  {x:12,  y:440, w:85,  h:52, label:'KAMAR\nJENAZAH',      color:COL.gray},
+  {x:109, y:440, w:88,  h:52, label:'AREA\nPARKIR',        color:COL.parkir},
 
-// ════════════════════════════════════════════════════
-//  ROOM REGISTRY
-// ════════════════════════════════════════════════════
-const ROOMS=[
-  {type:IGD,    r1:2, c1:2,  r2:9,  c2:11, name:'IGD (Gawat Darurat)'},
-  {type:TRIAGE, r1:2, c1:14, r2:9,  c2:23, name:'Ruang Triage'},
-  {type:ICU,    r1:2, c1:26, r2:9,  c2:35, name:'ICU'},
-  {type:NURSE,  r1:2, c1:38, r2:9,  c2:49, name:'Nurse Station'},
-  {type:LAB,    r1:11,c1:2,  r2:18, c2:11, name:'Laboratorium'},
-  {type:RADIO,  r1:11,c1:14, r2:18, c2:23, name:'Radiologi'},
-  {type:POLIA,  r1:11,c1:26, r2:18, c2:35, name:'Poli Umum'},
-  {type:POLIB,  r1:11,c1:38, r2:18, c2:49, name:'Poli Spesialis'},
-  {type:FARMASI,r1:20,c1:2,  r2:27, c2:11, name:'Farmasi / Apotek'},
-  {type:RESEP,  r1:20,c1:14, r2:27, c2:35, name:'Resepsionis'},
-  {type:KANTOR, r1:20,c1:38, r2:27, c2:49, name:'Kantor Administrasi'},
-  {type:TOILET, r1:29,c1:2,  r2:36, c2:5,  name:'Toilet (Kiri)'},
-  {type:TOILET, r1:29,c1:7,  r2:36, c2:11, name:'Toilet (Kanan)'},
-  {type:ENTRANCE,r1:29,c1:14,r2:36, c2:35, name:'Entrance / Pintu Masuk'},
-  {type:LIFT,   r1:29,c1:38, r2:33, c2:44, name:'Lift'},
-  {type:TANGGA, r1:34,c1:38, r2:36, c2:44, name:'Tangga'},
-  {type:TOILET, r1:29,c1:46, r2:36, c2:49, name:'Toilet (Timur)'},
+  // ══ IBS/ICU/RADIOLOGI — MERAH BESAR ══
+  {x:208, y:440, w:138, h:115, label:'IBS / ICU\nRADIOLOGI\nTERPADU', color:COL.red},
+
+  // CSSD — kuning kecil
+  {x:358, y:440, w:55,  h:52, label:'GEDUNG\nCSSD',         color:COL.yel},
+  // Brotojoyo — hijau kecil di bawah CSSD
+  {x:358, y:504, w:55,  h:51, label:'GD.\nBROTOJOYO',       color:COL.green},
+
+  // ══ IGD — MERAH, lebih kecil dari IBS ══
+  {x:425, y:440, w:125, h:115, label:'IGD',                 color:COL.red},
+
+  // ══ PARKIR KANAN BAWAH ══
+  {x:562, y:464, w:98,  h:91, label:'AREA\nPARKIR',        color:COL.parkir},
+
+  // ══ BARIS PALING BAWAH ══
+  {x:12,  y:505, w:185, h:42, label:'AREA PARKIR',          color:COL.parkir},
+  {x:208, y:570, w:185, h:38, label:'AREA PARKIR',          color:COL.parkir},
+  // Koperasi — hijau kecil
+  {x:408, y:578, w:68,  h:50, label:'KOPERASI',             color:COL.green},
+  // Area parkir bawah paling bawah
+  {x:12,  y:560, w:185, h:38, label:'AREA PARKIR',          color:COL.parkir},
+
+  // ══ MASJID — hijau tua, agak miring (kanan bawah) ══
+  // Digambar dengan rotasi sedikit
+  {x:483, y:570, w:155, h:88, label:'MASJID', color:COL.mosq, rot:-0.12},
 ];
 
-// Get nearest walkable (door/corridor) cell for a room
-function getEntry(rm){
-  // Collect all D cells adjacent to this room OR corridor cells next to room
-  const candidates=[];
-  for(let r=rm.r1-1;r<=rm.r2+1;r++){
-    for(let c=rm.c1-1;c<=rm.c2+1;c++){
-      if(r<0||r>=ROWS||c<0||c>=COLS) continue;
-      if(IS_ROOM(MAP[r][c])) continue; // still inside a room
-      if(WALKABLE.has(MAP[r][c])){
-        // Must be adjacent to room boundary
-        const adjRoom=(r>=rm.r1&&r<=rm.r2&&(c===rm.c1-1||c===rm.c2+1))
-                    ||(c>=rm.c1&&c<=rm.c2&&(r===rm.r1-1||r===rm.r2+1));
-        if(adjRoom) candidates.push([r,c]);
-      }
-    }
+// ─────────────────────────────────────────────────────────────
+// JALAN — [{pts:[...], w}]
+// Setiap jalan = polyline dengan lebar w
+// ─────────────────────────────────────────────────────────────
+const ROADS = [
+  // Jalan Lingkar Luar
+  {pts:[12,58,  688,58],  w:15, label:null},    // atas
+  {pts:[12,632, 688,632], w:15, label:null},    // bawah
+  {pts:[0, 58,  0,  632], w:16, label:null},    // kiri
+  {pts:[700,0,  700,680], w:25, label:'JL. FATMAWATI\nKOTA SEMARANG'}, // kanan utama
+
+  // Jalan dalam sisi kanan (sebelum Jl.Fatmawati)
+  {pts:[672,58, 672,632], w:14, label:null},
+
+  // Jalan internal HORIZONTAL (berbeda-beda panjang & posisi)
+  {pts:[12,70,  672,70],  w:10, label:null},   // H1 - batas atas bangunan baris 1
+  {pts:[12,108, 672,108], w:10, label:null},   // H2
+  {pts:[12,152, 672,152], w:10, label:null},   // H3
+  {pts:[12,205, 672,205], w:10, label:null},   // H4
+  {pts:[12,260, 672,260], w:10, label:null},   // H5
+  {pts:[12,328, 672,328], w:10, label:null},   // H6
+  {pts:[12,395, 672,395], w:10, label:null},   // H7
+  {pts:[12,432, 672,432], w:10, label:null},   // H8
+  {pts:[12,558, 672,558], w:10, label:null},   // H9
+  {pts:[12,568, 672,568], w:10, label:null},   // H10 bawah IGD
+
+  // Jalan internal VERTIKAL (berbeda-beda tinggi)
+  {pts:[62,  58, 62,  632], w:10, label:null},  // V1
+  {pts:[133, 58, 133, 632], w:10, label:null},  // V2
+  {pts:[199, 58, 199, 632], w:10, label:null},  // V3
+  {pts:[292, 58, 292, 632], w:10, label:null},  // V4
+  {pts:[395, 58, 395, 632], w:10, label:null},  // V5
+  {pts:[555, 58, 555, 632], w:10, label:null},  // V6
+
+  // Jalan pintu MASUK — kanan bawah
+  {pts:[672,558, 720,558], w:15, label:null},
+  {pts:[672,632, 720,632], w:15, label:null},
+  {pts:[720,558, 720,632], w:15, label:null},
+  // Jalan pintu KELUAR — kanan tengah
+  {pts:[672,395, 720,395], w:15, label:null},
+  {pts:[672,432, 720,432], w:15, label:null},
+  {pts:[720,395, 720,432], w:15, label:null},
+
+  // Jalan kecil dalam (antara bangunan yg tidak reguler)
+  {pts:[395,260, 555,260], w:8, label:null},    // di atas Amarta
+  {pts:[395,380, 555,380], w:8, label:null},    // bawah Amarta
+];
+
+// ─────────────────────────────────────────────────────────────
+// Bangun NAV grid dari definisi jalan
+// ─────────────────────────────────────────────────────────────
+function px2c(x){ return Math.min(GC-1,Math.max(0,Math.floor(x/CW_G))); }
+function px2r(y){ return Math.min(GR-1,Math.max(0,Math.floor(y/CH_G))); }
+function c2px(c){ return c*CW_G+CW_G/2; }
+function r2py(r){ return r*CH_G+CH_G/2; }
+
+ROADS.forEach(rd=>{
+  const hw=rd.w/2;
+  for(let i=0;i<rd.pts.length-2;i+=2){
+    const x1=rd.pts[i],y1=rd.pts[i+1],x2=rd.pts[i+2],y2=rd.pts[i+3];
+    const c1=px2c(Math.min(x1,x2)-hw-1), c2=px2c(Math.max(x1,x2)+hw+1);
+    const r1=px2r(Math.min(y1,y2)-hw-1), r2=px2r(Math.max(y1,y2)+hw+1);
+    for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) NAV[GK(c,r)]=1;
   }
-  if(!candidates.length) return null;
-  // Return candidate closest to room center
-  const cr=(rm.r1+rm.r2)/2, cc=(rm.c1+rm.c2)/2;
-  candidates.sort((a,b)=>(Math.abs(a[0]-cr)+Math.abs(a[1]-cc))-(Math.abs(b[0]-cr)+Math.abs(b[1]-cc)));
-  return {r:candidates[0][0],c:candidates[0][1]};
+});
+// Tandai interior bangunan sebagai tembok
+BLDG.forEach(b=>{
+  const pad=3;
+  const c1=px2c(b.x+pad),c2=px2c(b.x+b.w-pad);
+  const r1=px2r(b.y+pad),r2=px2r(b.y+b.h-pad);
+  for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) NAV[GK(c,r)]=0;
+});
+
+// ─────────────────────────────────────────────────────────────
+// LOKASI NAVIGASI
+// ─────────────────────────────────────────────────────────────
+const LOCS=[
+  {id:'masuk',     name:'🚪 Pintu Masuk (Jl. Fatmawati)', cat:'akses',    px:710,py:595},
+  {id:'keluar',    name:'🚪 Pintu Keluar (Jl. Fatmawati)',cat:'akses',    px:710,py:413},
+  {id:'igd',       name:'🚑 IGD',                         cat:'darurat',  px:487,py:497},
+  {id:'ibs',       name:'🔴 IBS / ICU / Radiologi',       cat:'darurat',  px:277,py:497},
+  {id:'bisma',     name:'🏥 Paviliun Bisma',              cat:'pavilun',  px:313,py:217},
+  {id:'amarta',    name:'🏥 Paviliun Amarta',             cat:'pavilun',  px:347,py:331},
+  {id:'gatot',     name:'🏥 Paviliun Gatotkaca',          cat:'pavilun',  px:459,py:154},
+  {id:'kanker',    name:'🏥 Unit Kanker Terpadu',         cat:'pavilun',  px:48, py:262},
+  {id:'broto',     name:'🏥 Gedung Brotojoyo',            cat:'pavilun',  px:385,py:529},
+  {id:'arjuna',    name:'🏢 Gedung Arjuna',               cat:'rawat',    px:48, py:389},
+  {id:'nakula',    name:'🏢 Gedung Nakula',               cat:'rawat',    px:102,py:233},
+  {id:'sadewa',    name:'🏢 Gedung Sadewa',               cat:'rawat',    px:102,py:298},
+  {id:'banowati',  name:'🏢 Gedung Banowati',             cat:'rawat',    px:102,py:363},
+  {id:'yudistira', name:'🏢 Gedung Yudistira',            cat:'rawat',    px:170,py:188},
+  {id:'bima',      name:'🏢 Gedung Bima',                 cat:'rawat',    px:170,py:253},
+  {id:'arimbi',    name:'🏢 Gedung Arimbi',               cat:'rawat',    px:170,py:318},
+  {id:'abimanyu',  name:'🏢 Gedung Abimanyu',             cat:'rawat',    px:249,py:312},
+  {id:'prabu',     name:'🏢 Gedung Prabu Kresna',         cat:'rawat',    px:249,py:380},
+  {id:'lab',       name:'🔬 Laborat Central',             cat:'rawat',    px:347,py:409},
+  {id:'cssd',      name:'🧪 Gedung CSSD',                 cat:'rawat',    px:385,py:466},
+  {id:'rehab',     name:'🏃 Rehabilitasi Medik',          cat:'rawat',    px:245,py:88},
+  {id:'ipal',      name:'🌊 IPAL',                        cat:'fasilitas',px:36, py:88},
+  {id:'k3',        name:'🦺 K3',                          cat:'fasilitas',px:36, py:133},
+  {id:'aset',      name:'🏢 Gedung Aset & Pool',          cat:'fasilitas',px:36, py:183},
+  {id:'simrs',     name:'💻 SIMRS',                       cat:'fasilitas',px:102,py:88},
+  {id:'kantin',    name:'🍴 Kantin',                      cat:'fasilitas',px:102,py:133},
+  {id:'laundry',   name:'👕 Laundry',                     cat:'fasilitas',px:102,py:178},
+  {id:'gizi',      name:'🍽️ Gedung Gizi',                 cat:'fasilitas',px:170,py:35},
+  {id:'smf',       name:'💊 SMF',                         cat:'fasilitas',px:170,py:88},
+  {id:'komite',    name:'📋 Komite Medik',                 cat:'fasilitas',px:245,py:133},
+  {id:'lapangan',  name:'🟩 Lapangan Upacara',            cat:'fasilitas',px:326,py:117},
+  {id:'masjid',    name:'🕌 Masjid',                      cat:'lain',     px:560,py:614},
+  {id:'koperasi',  name:'🛒 Koperasi',                    cat:'lain',     px:442,py:603},
+  {id:'jenazah',   name:'⚰️ Kamar Jenazah',               cat:'lain',     px:54, py:466},
+  {id:'parkir1',   name:'🅿️ Parkir Utara',                cat:'parkir',   px:60, py:35},
+  {id:'parkir2',   name:'🅿️ Parkir Timur Atas',           cat:'parkir',   px:611,py:110},
+  {id:'parkir3',   name:'🅿️ Parkir Timur Tengah',         cat:'parkir',   px:611,py:310},
+  {id:'parkir4',   name:'🅿️ Parkir Selatan',              cat:'parkir',   px:60, py:540},
+];
+const LOC_BY_ID={};
+LOCS.forEach(l=>LOC_BY_ID[l.id]=l);
+
+function snapWalk(px,py){
+  const c0=px2c(px),r0=px2r(py);
+  if(NAV[GK(c0,r0)]) return{gc:c0,gr:r0};
+  let best=null,bd=99999;
+  for(let dr=-15;dr<=15;dr++) for(let dc=-15;dc<=15;dc++){
+    const r=r0+dr,c=c0+dc;
+    if(r<0||r>=GR||c<0||c>=GC) continue;
+    if(!NAV[GK(c,r)]) continue;
+    const d=dr*dr+dc*dc;
+    if(d<bd){bd=d;best={gc:c,gr:r};}
+  }
+  return best||{gc:c0,gr:r0};
+}
+LOCS.forEach(l=>{const s=snapWalk(l.px,l.py);l.gc=s.gc;l.gr=s.gr;});
+
+// ─────────────────────────────────────────────────────────────
+// DROPDOWN
+// ─────────────────────────────────────────────────────────────
+const CAT_LABEL={akses:'🚪 Akses Masuk/Keluar',darurat:'🚑 Gawat Darurat',pavilun:'🏥 Paviliun Rawat Inap',rawat:'🏢 Rawat Jalan',fasilitas:'⚙️ Fasilitas',parkir:'🅿️ Parkir',lain:'📍 Lainnya'};
+(function buildDD(){
+  const grp={};
+  LOCS.forEach(l=>(grp[l.cat]=grp[l.cat]||[]).push(l));
+  ['sel-s','sel-e'].forEach(sid=>{
+    const el=document.getElementById(sid);
+    el.innerHTML='<option value="">— Pilih lokasi —</option>';
+    Object.keys(CAT_LABEL).forEach(cat=>{
+      if(!grp[cat]) return;
+      const og=document.createElement('optgroup');
+      og.label=CAT_LABEL[cat];
+      grp[cat].forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.name;og.appendChild(o);});
+      el.appendChild(og);
+    });
+  });
+})();
+
+// ─────────────────────────────────────────────────────────────
+// CANVAS SETUP & DRAWING
+// ─────────────────────────────────────────────────────────────
+const CV=document.getElementById('cv');
+const CTX=CV.getContext('2d');
+let SC=1,OX=0,OY=0;
+
+function resize(){
+  const wrap=document.getElementById('mapwrap');
+  CV.width=wrap.clientWidth;
+  CV.height=wrap.clientHeight;
+  SC=Math.min(CV.width/LW,CV.height/LH);
+  OX=(CV.width-LW*SC)/2;
+  OY=(CV.height-LH*SC)/2;
 }
 
-// ════════════════════════════════════════════════════
-//  CANVAS
-// ════════════════════════════════════════════════════
-const CELL=14;
-const cv1=document.getElementById('cv-bfs'), cv2=document.getElementById('cv-astr');
-const ctx1=cv1.getContext('2d'), ctx2=cv2.getContext('2d');
-cv1.width=cv2.width=COLS*CELL;
-cv1.height=cv2.height=ROWS*CELL;
+// Koordinat transformasi
+const lx=x=>OX+x*SC;
+const ly=y=>OY+y*SC;
+const ls=s=>s*SC;
 
-// State
-let startRoom=null,endRoom=null,mode='start',isAnim=false,timers=[];
+function drawRR(x,y,w,h,r,fill,stroke,sw){
+  CTX.beginPath();
+  CTX.moveTo(lx(x+r),ly(y));
+  CTX.lineTo(lx(x+w-r),ly(y));
+  CTX.arcTo(lx(x+w),ly(y),lx(x+w),ly(y+r),ls(r));
+  CTX.lineTo(lx(x+w),ly(y+h-r));
+  CTX.arcTo(lx(x+w),ly(y+h),lx(x+w-r),ly(y+h),ls(r));
+  CTX.lineTo(lx(x+r),ly(y+h));
+  CTX.arcTo(lx(x),ly(y+h),lx(x),ly(y+h-r),ls(r));
+  CTX.lineTo(lx(x),ly(y+r));
+  CTX.arcTo(lx(x),ly(y),lx(x+r),ly(y),ls(r));
+  CTX.closePath();
+  if(fill){CTX.fillStyle=fill;CTX.fill();}
+  if(stroke){CTX.strokeStyle=stroke;CTX.lineWidth=ls(sw||1);CTX.stroke();}
+}
 
-// ════════════════════════════════════════════════════
-//  DRAW
-// ════════════════════════════════════════════════════
-function drawMap(ctx,vis,pathSet,algo){
-  ctx.clearRect(0,0,COLS*CELL,ROWS*CELL);
-
-  for(let r=0;r<ROWS;r++){
-    for(let c=0;c<COLS;c++){
-      const t=MAP[r][c];
-      const k=r*COLS+c;
-      const x=c*CELL,y=r*CELL;
-
-      if(t===W){
-        // Wall: dark grey with subtle depth
-        ctx.fillStyle='#7a8394';
-        ctx.fillRect(x,y,CELL,CELL);
-        ctx.fillStyle='rgba(255,255,255,.13)';
-        ctx.fillRect(x,y,CELL,1);
-        ctx.fillRect(x,y,1,CELL);
-        ctx.fillStyle='rgba(0,0,0,.15)';
-        ctx.fillRect(x,y+CELL-1,CELL,1);
-        ctx.fillRect(x+CELL-1,y,1,CELL);
-        continue;
-      }
-
-      // Base
-      let col=RCOLOR[t]||'#eef2f7';
-
-      if(vis&&vis.has(k))   col=algo==='bfs'?'rgba(245,158,11,.28)':'rgba(139,92,246,.26)';
-      if(pathSet&&pathSet.has(k)) col=algo==='bfs'?'rgba(245,158,11,.68)':'rgba(139,92,246,.68)';
-
-      ctx.fillStyle=col;
-      ctx.fillRect(x,y,CELL,CELL);
-
-      // Corridor subtle grid lines
-      if(t===H||t===V){
-        ctx.strokeStyle='rgba(150,165,195,.25)';
-        ctx.lineWidth=.4;
-        ctx.strokeRect(x,y,CELL,CELL);
-      }
-
-      // Door: small gap indicator
-      if(t===D){
-        ctx.fillStyle='rgba(80,100,140,.2)';
-        ctx.fillRect(x+1,y+1,CELL-2,CELL-2);
-      }
-
-      // Room: draw outline
-      if(IS_ROOM(t)&&t!==D){
-        ctx.strokeStyle='rgba(0,0,0,.12)';
-        ctx.lineWidth=.8;
-        ctx.strokeRect(x+.4,y+.4,CELL-.8,CELL-.8);
-      }
-    }
-  }
-
-  // Room labels
-  ctx.save();
-  ROOMS.forEach(rm=>{
-    const lbl=RLABEL[rm.type]||'';
-    if(!lbl) return;
-    const cx=(rm.c1+rm.c2+1)/2*CELL;
-    const cy=(rm.r1+rm.r2+1)/2*CELL;
-    const w=(rm.c2-rm.c1+1)*CELL;
-    const h=(rm.r2-rm.r1+1)*CELL;
-    const fs=Math.min(9,Math.floor(w/lbl.length*1.3),Math.floor(h*.32));
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.font=`600 ${fs}px 'DM Mono',monospace`;
-    ctx.fillStyle='rgba(255,255,255,.8)';
-    ctx.fillText(lbl,cx+.5,cy+.5);
-    ctx.fillStyle='rgba(30,35,60,.6)';
-    ctx.fillText(lbl,cx,cy);
+function bldgLabel(b){
+  const lines=b.label.split('\n');
+  const bx=lx(b.x),by=ly(b.y),bw=ls(b.w),bh=ls(b.h);
+  const cx=bx+bw/2, cy=by+bh/2;
+  const maxFS=Math.min(ls(10.5), ls(b.w/(Math.max(...lines.map(l=>l.length))+.5)*1.8), ls(b.h/lines.length*.65));
+  const fs=Math.max(ls(3.2),maxFS);
+  if(fs<ls(3)) return;
+  CTX.save();
+  CTX.textAlign='center';CTX.textBaseline='middle';
+  CTX.font=`700 ${fs}px 'Plus Jakarta Sans',sans-serif`;
+  lines.forEach((line,i)=>{
+    const yy=cy+(i-(lines.length-1)/2)*(fs+ls(1));
+    CTX.fillStyle='rgba(255,255,255,.88)';
+    CTX.fillText(line,cx+ls(.35),yy+ls(.35));
+    CTX.fillStyle='rgba(0,0,0,.72)';
+    CTX.fillText(line,cx,yy);
   });
-  ctx.restore();
+  CTX.restore();
+}
 
-  // Start/end markers
-  [startRoom,endRoom].forEach((rm,i)=>{
-    if(!rm||!rm.entry) return;
-    const{r,c}=rm.entry;
-    const x=c*CELL,y=r*CELL;
+function drawBuilding(b){
+  if(b.rot){
+    // Gambar dengan rotasi
+    const cx=lx(b.x+b.w/2),cy=ly(b.y+b.h/2);
+    const bw=ls(b.w),bh=ls(b.h);
+    CTX.save();
+    CTX.translate(cx,cy);CTX.rotate(b.rot);
+    CTX.fillStyle=b.color;
+    CTX.beginPath();
+    const r=ls(4);
+    CTX.roundRect(-bw/2,-bh/2,bw,bh,r);
+    CTX.fill();
+    CTX.strokeStyle='rgba(0,0,0,.2)';CTX.lineWidth=ls(.8);CTX.stroke();
+    // Label masjid khusus
+    CTX.fillStyle='rgba(255,255,255,.92)';
+    CTX.font=`bold ${ls(11)}px serif`;
+    CTX.textAlign='center';CTX.textBaseline='middle';
+    CTX.fillText('☪',0,-ls(12));
+    CTX.font=`700 ${ls(8.5)}px 'Plus Jakarta Sans',sans-serif`;
+    CTX.fillStyle='rgba(255,255,255,.9)';
+    CTX.fillText('MASJID',0,ls(6));
+    CTX.restore();
+    return;
+  }
+  drawRR(b.x,b.y,b.w,b.h,3,b.color,'rgba(0,0,0,.2)',.8);
+  bldgLabel(b);
+}
+
+function drawAllRoads(){
+  // Background luar kompleks
+  CTX.fillStyle=COL.outer;
+  CTX.fillRect(0,0,CV.width,CV.height);
+  // Background area kompleks
+  CTX.fillStyle='#bfcfdf';
+  CTX.fillRect(lx(0),ly(0),ls(LW),ls(LH));
+
+  ROADS.forEach(rd=>{
+    CTX.beginPath();
+    CTX.moveTo(lx(rd.pts[0]),ly(rd.pts[1]));
+    for(let i=2;i<rd.pts.length;i+=2) CTX.lineTo(lx(rd.pts[i]),ly(rd.pts[i+1]));
+    CTX.strokeStyle=COL.road;
+    CTX.lineWidth=ls(rd.w);
+    CTX.lineCap='round';CTX.lineJoin='round';
+    CTX.stroke();
+  });
+
+  // Garis tengah jalan utama kanan (Jl. Fatmawati)
+  CTX.save();
+  CTX.setLineDash([ls(8),ls(6)]);
+  CTX.strokeStyle='rgba(255,255,255,.4)';
+  CTX.lineWidth=ls(1.5);
+  CTX.beginPath();
+  CTX.moveTo(lx(700),ly(58));
+  CTX.lineTo(lx(700),ly(632));
+  CTX.stroke();
+  CTX.restore();
+
+  // Label Jl. Fatmawati (vertikal kanan)
+  CTX.save();
+  CTX.translate(lx(748),ly(340));
+  CTX.rotate(Math.PI/2);
+  CTX.fillStyle='rgba(255,255,255,.75)';
+  CTX.font=`600 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
+  CTX.textAlign='center';CTX.textBaseline='middle';
+  CTX.fillText('JL. FATMAWATI KOTA SEMARANG',0,0);
+  CTX.restore();
+
+  // Label Jalan Lingkar atas
+  CTX.fillStyle='rgba(30,50,90,.55)';
+  CTX.font=`600 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
+  CTX.textAlign='center';CTX.textBaseline='middle';
+  CTX.fillText('JALAN LINGKAR',lx(340),ly(58));
+
+  // Label SUNGAI (kiri, kanan atas)
+  CTX.fillStyle='rgba(59,130,246,.65)';
+  CTX.font=`600 ${ls(6)}px 'Plus Jakarta Sans',sans-serif`;
+  ['SUNGAI','SUNGAI','SUNGAI'].forEach((t,i)=>{
+    CTX.fillText(t,lx(150+i*230),ly(33));
+  });
+}
+
+function drawAccessBox(){
+  // MASUK — kotak hijau kanan bawah
+  const mx=lx(674),my=ly(558),mw=ls(42),mh=ls(74);
+  CTX.fillStyle='#15803d';
+  CTX.beginPath();CTX.roundRect(mx,my,mw,mh,ls(4));CTX.fill();
+  CTX.fillStyle='#fff';
+  CTX.font=`700 ${ls(8)}px 'Plus Jakarta Sans',sans-serif`;
+  CTX.textAlign='center';CTX.textBaseline='middle';
+  CTX.fillText('MASUK',mx+mw/2,my+mh/2);
+  // Panah merah
+  CTX.fillStyle='#dc2626';
+  const ax=mx+mw+ls(2);
+  CTX.beginPath();
+  CTX.moveTo(ax,my+mh/2-ls(6));
+  CTX.lineTo(ax,my+mh/2+ls(6));
+  CTX.lineTo(ax+ls(9),my+mh/2);
+  CTX.closePath();CTX.fill();
+
+  // KELUAR — kotak merah kanan tengah
+  const ex=lx(674),ey=ly(395),ew=ls(42),eh=ls(37);
+  CTX.fillStyle='#dc2626';
+  CTX.beginPath();CTX.roundRect(ex,ey,ew,eh,ls(4));CTX.fill();
+  CTX.fillStyle='#fff';
+  CTX.font=`700 ${ls(8)}px 'Plus Jakarta Sans',sans-serif`;
+  CTX.textAlign='center';CTX.textBaseline='middle';
+  CTX.fillText('KELUAR',ex+ew/2,ey+eh/2);
+  // Lingkaran ikon keluar
+  CTX.strokeStyle='#fff';CTX.lineWidth=ls(2);
+  CTX.beginPath();CTX.arc(ex+ew/2,ey-ls(16),ls(11),0,Math.PI*2);CTX.stroke();
+  CTX.fillStyle='#15803d';
+  CTX.beginPath();CTX.arc(ex+ew/2,ey-ls(16),ls(7),0,Math.PI*2);CTX.fill();
+}
+
+function drawCompass(){
+  const cx=lx(760),cy=ly(48),r=ls(19);
+  CTX.save();
+  CTX.fillStyle='rgba(255,255,255,.9)';
+  CTX.beginPath();CTX.arc(cx,cy,r,0,Math.PI*2);CTX.fill();
+  CTX.strokeStyle='#cbd5e1';CTX.lineWidth=ls(.8);CTX.stroke();
+  ['U','S','B','T'].forEach((d,i)=>{
+    const a=i*Math.PI/2-Math.PI/2;
+    CTX.fillStyle=d==='U'?'#dc2626':'#475569';
+    CTX.font=`700 ${ls(d==='U'?9:7.5)}px Plus Jakarta Sans`;
+    CTX.textAlign='center';CTX.textBaseline='middle';
+    CTX.fillText(d,cx+Math.cos(a)*(r-ls(6)),cy+Math.sin(a)*(r-ls(6)));
+  });
+  CTX.restore();
+}
+
+// ── NAV overlay ──
+let _vis=null,_path=null;
+
+function drawVisited(){
+  if(!_vis) return;
+  CTX.save();
+  CTX.fillStyle='rgba(14,165,233,.13)';
+  _vis.forEach(k=>{
+    const c=k%GC,r=Math.floor(k/GC);
+    CTX.fillRect(lx(c*CW_G),ly(r*CH_G),ls(CW_G),ls(CH_G));
+  });
+  CTX.restore();
+}
+
+function drawPath(){
+  if(!_path||_path.length<2) return;
+  CTX.save();
+  CTX.strokeStyle='#0ea5e9';
+  CTX.lineWidth=ls(4.5);
+  CTX.lineJoin='round';CTX.lineCap='round';
+  CTX.shadowColor='rgba(14,165,233,.45)';
+  CTX.shadowBlur=ls(5);
+  CTX.beginPath();
+  _path.forEach(([gc,gr],i)=>{
+    const x=lx(c2px(gc)),y=ly(r2py(gr));
+    i===0?CTX.moveTo(x,y):CTX.lineTo(x,y);
+  });
+  CTX.stroke();
+  CTX.shadowBlur=0;
+  CTX.fillStyle='#0284c7';
+  _path.forEach(([gc,gr],i)=>{
+    if(i%9!==5) return;
+    CTX.beginPath();CTX.arc(lx(c2px(gc)),ly(r2py(gr)),ls(2.2),0,Math.PI*2);CTX.fill();
+  });
+  CTX.restore();
+}
+
+function drawMarkers(){
+  [startLoc,endLoc].forEach((loc,i)=>{
+    if(!loc) return;
+    const x=lx(c2px(loc.gc)),y=ly(r2py(loc.gr));
     const col=i===0?'#2563eb':'#ef4444';
     // Glow
-    const g=ctx.createRadialGradient(x+CELL/2,y+CELL/2,0,x+CELL/2,y+CELL/2,CELL*3);
+    const g=CTX.createRadialGradient(x,y,0,x,y,ls(20));
     g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');
-    ctx.fillStyle=g;
-    ctx.beginPath();ctx.arc(x+CELL/2,y+CELL/2,CELL*3,0,Math.PI*2);ctx.fill();
-    // Circle
-    ctx.fillStyle=col;
-    ctx.beginPath();ctx.arc(x+CELL/2,y+CELL/2,CELL*.46,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.fillStyle='#fff';
-    ctx.font=`bold ${CELL*.36}px monospace`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(i===0?'S':'E',x+CELL/2,y+CELL/2+.5);
+    CTX.fillStyle=g;
+    CTX.beginPath();CTX.arc(x,y,ls(20),0,Math.PI*2);CTX.fill();
+    // Pin
+    CTX.fillStyle=col;
+    CTX.beginPath();CTX.arc(x,y,ls(7.5),0,Math.PI*2);CTX.fill();
+    CTX.strokeStyle='#fff';CTX.lineWidth=ls(2);CTX.stroke();
+    CTX.fillStyle='#fff';
+    CTX.font=`bold ${ls(6.5)}px monospace`;
+    CTX.textAlign='center';CTX.textBaseline='middle';
+    CTX.fillText(i===0?'A':'B',x,y+ls(.5));
   });
 }
 
-function drawPath(ctx,path,algo){
-  if(!path||path.length<2) return;
-  const col=algo==='bfs'?'#f59e0b':'#8b5cf6';
-  ctx.strokeStyle=col;ctx.lineWidth=3;
-  ctx.lineJoin='round';ctx.lineCap='round';
-  ctx.globalAlpha=.92;ctx.beginPath();
-  path.forEach(([r,c],i)=>{
-    const x=c*CELL+CELL/2,y=r*CELL+CELL/2;
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-  // Dots
-  ctx.fillStyle=col;
-  path.forEach(([r,c],i)=>{
-    if(i%4!==0) return;
-    ctx.beginPath();ctx.arc(c*CELL+CELL/2,r*CELL+CELL/2,1.6,0,Math.PI*2);ctx.fill();
-  });
-  ctx.globalAlpha=1;
+function redraw(){
+  CTX.clearRect(0,0,CV.width,CV.height);
+  drawAllRoads();
+  BLDG.forEach(b=>drawBuilding(b));
+  drawAccessBox();
+  drawCompass();
+  drawVisited();
+  drawPath();
+  drawMarkers();
 }
 
-// ════════════════════════════════════════════════════
-//  ALGORITHMS
-// ════════════════════════════════════════════════════
-const key=(r,c)=>r*COLS+c;
-const DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
-
-function bfs(sr,sc,er,ec){
-  const vis=new Set(),par=new Map();
-  const q=[[sr,sc]]; vis.add(key(sr,sc));
-  const order=[]; let found=false,maxQ=1;
-  while(q.length){
-    maxQ=Math.max(maxQ,q.length);
-    const[r,c]=q.shift(); order.push([r,c]);
-    if(r===er&&c===ec){found=true;break;}
-    for(const[dr,dc]of DIRS){
-      const nr=r+dr,nc=c+dc;
-      if(nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
-      if(!WALKABLE.has(MAP[nr][nc])) continue;
-      const k=key(nr,nc);
-      if(vis.has(k)) continue;
-      vis.add(k);par.set(k,[r,c]);q.push([nr,nc]);
-    }
-  }
-  if(!found) return{order,path:null,maxQ};
-  const path=[];let[r,c]=[er,ec];
-  while(!(r===sr&&c===sc)){path.unshift([r,c]);[r,c]=par.get(key(r,c));}
-  path.unshift([sr,sc]);
-  return{order,path,maxQ};
-}
-
-function astar(sr,sc,er,ec){
-  const h=(r,c)=>Math.abs(r-er)+Math.abs(c-ec);
-  const g=new Map(),par=new Map(),closed=new Set();
-  const sk=key(sr,sc); g.set(sk,0);
-  const open=[[h(sr,sc),sr,sc]];
-  const order=[]; let found=false,maxQ=1;
+// ─────────────────────────────────────────────────────────────
+// A* PATHFINDING
+// ─────────────────────────────────────────────────────────────
+function astar(sc0,sr0,ec,er){
+  const H=(c,r)=>Math.abs(c-ec)+Math.abs(r-er);
+  const gC=new Map(),par=new Map(),closed=new Set();
+  gC.set(GK(sc0,sr0),0);
+  const open=[[H(sc0,sr0),sc0,sr0]];
+  const vis=[];let found=false;
+  const DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
   while(open.length){
     open.sort((a,b)=>a[0]-b[0]);
-    maxQ=Math.max(maxQ,open.length);
-    const[,r,c]=open.shift();
-    const k=key(r,c);
+    const[,c,r]=open.shift();
+    const k=GK(c,r);
     if(closed.has(k)) continue;
-    closed.add(k);order.push([r,c]);
-    if(r===er&&c===ec){found=true;break;}
-    for(const[dr,dc]of DIRS){
+    closed.add(k);vis.push([c,r]);
+    if(c===ec&&r===er){found=true;break;}
+    for(const[dr,dc] of DIRS){
       const nr=r+dr,nc=c+dc;
-      if(nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
-      if(!WALKABLE.has(MAP[nr][nc])) continue;
-      const nk=key(nr,nc);
+      if(nr<0||nr>=GR||nc<0||nc>=GC) continue;
+      if(!NAV[GK(nc,nr)]) continue;
+      const nk=GK(nc,nr);
       if(closed.has(nk)) continue;
-      const ng=(g.get(k)||0)+1;
-      if(ng<(g.get(nk)||Infinity)){
-        g.set(nk,ng);par.set(nk,[r,c]);
-        open.push([ng+h(nr,nc),nr,nc]);
+      const ng=(gC.get(k)||0)+1;
+      if(ng<(gC.get(nk)||Infinity)){
+        gC.set(nk,ng);par.set(nk,[c,r]);
+        open.push([ng+H(nc,nr),nc,nr]);
       }
     }
   }
-  if(!found) return{order,path:null,maxQ};
-  const path=[];let[r,c]=[er,ec];
-  while(!(r===sr&&c===sc)){path.unshift([r,c]);[r,c]=par.get(key(r,c));}
-  path.unshift([sr,sc]);
-  return{order,path,maxQ};
+  if(!found) return{vis,path:null};
+  const path=[];let[c,r]=[ec,er];
+  while(!(c===sc0&&r===sr0)){path.unshift([c,r]);[c,r]=par.get(GK(c,r));}
+  path.unshift([sc0,sr0]);
+  return{vis,path};
 }
 
-// ════════════════════════════════════════════════════
-//  ANIMATE
-// ════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
+// ANIMASI & UI
+// ─────────────────────────────────────────────────────────────
+let timers=[];
 function clearTimers(){timers.forEach(clearTimeout);timers=[];}
 
-function animate(ctx,order,path,algo,onDone){
-  const vis=new Set(),pset=new Set();
-  let i=0;
+function animateFind(vis,path){
+  const vset=new Set();let i=0;
   function sv(){
-    const batch=Math.max(1,Math.floor(order.length/100));
-    for(let b=0;b<batch&&i<order.length;b++,i++) vis.add(order[i][0]*COLS+order[i][1]);
-    drawMap(ctx,vis,null,algo);
-    if(i<order.length){timers.push(setTimeout(sv,4));}
+    const batch=Math.max(1,Math.floor(vis.length/70));
+    for(let b=0;b<batch&&i<vis.length;b++,i++) vset.add(GK(vis[i][0],vis[i][1]));
+    _vis=vset;redraw();
+    if(i<vis.length){timers.push(setTimeout(sv,4));}
     else{
       if(path){
         let pi=0;
         function sp(){
-          if(pi<path.length){
-            pset.add(path[pi][0]*COLS+path[pi][1]);pi++;
-            drawMap(ctx,vis,pset,algo);
-            drawPath(ctx,path.slice(0,pi),algo);
-            timers.push(setTimeout(sp,20));
-          } else {
-            drawMap(ctx,vis,pset,algo);
-            drawPath(ctx,path,algo);
-            if(onDone) onDone();
-          }
+          _path=path.slice(0,pi);redraw();
+          if(pi<path.length){pi++;timers.push(setTimeout(sp,10));}
+          else{_path=path;redraw();setInfo(false,'✅ Jalur ditemukan! Ikuti garis biru.');}
         }
         sp();
-      } else {if(onDone) onDone();}
+      } else setInfo(false,'❌ Jalur tidak ditemukan.');
     }
   }
   sv();
 }
 
-// ════════════════════════════════════════════════════
-//  RUN BOTH
-// ════════════════════════════════════════════════════
-function runBoth(){
-  if(!startRoom||!endRoom||isAnim) return;
-  isAnim=true; clearTimers();
-  document.getElementById('btn-run').disabled=true;
-  setInfo(true,'Menjalankan BFS dan A*…');
-
-  const{r:sr,c:sc}=startRoom.entry,{r:er,c:ec}=endRoom.entry;
-
-  const t0=performance.now(); const bR=bfs(sr,sc,er,ec); const tb=performance.now()-t0;
-  const t1=performance.now(); const aR=astar(sr,sc,er,ec); const ta=performance.now()-t1;
-
-  $('b-v',bR.order.length); $('b-p',bR.path?bR.path.length:'✕'); $('b-t',tb.toFixed(2)+' ms');
-  $('a-v',aR.order.length); $('a-p',aR.path?aR.path.length:'✕'); $('a-t',ta.toFixed(2)+' ms');
-
-  const wb=document.getElementById('winner');
-  if(bR.path&&aR.path){
-    const bv=bR.order.length,av=aR.order.length;
-    if(av<bv){wb.className='winner show astr';wb.textContent=`A* lebih efisien (${av} vs ${bv} sel dikunjungi)`;}
-    else if(bv<av){wb.className='winner show bfs';wb.textContent=`BFS lebih efisien (${bv} vs ${av} sel dikunjungi)`;}
-    else{wb.className='winner show tie';wb.textContent='Keduanya sama efisien!';}
-    updateWalk(bR.path.length,aR.path.length);
-  } else {
-    wb.className='winner show tie';
-    wb.textContent=bR.path||aR.path?'Satu jalur ditemukan':'Tidak ada jalur ditemukan!';
+const DNAME={'-1,0':'Utara','1,0':'Selatan','0,-1':'Barat','0,1':'Timur'};
+function genSteps(path,sL,eL){
+  if(!path||path.length<2) return[];
+  const st=[];
+  st.push({text:'Mulai dari '+sL.name.replace(/^[^\s]+\s/,''),first:true});
+  let prev=null,dist=0;
+  for(let i=1;i<path.length;i++){
+    const dr=path[i][1]-path[i-1][1],dc=path[i][0]-path[i-1][0];
+    const dk=`${dr},${dc}`;
+    if(prev!==dk){if(prev&&dist) st.push({text:`Lurus ±${Math.round(dist*3.5)} m ke ${DNAME[prev]||'-'}`});dist=0;prev=dk;}
+    dist++;
   }
-
-  animate(ctx1,bR.order,bR.path,'bfs',()=>{});
-  animate(ctx2,aR.order,aR.path,'astr',()=>{
-    isAnim=false;
-    document.getElementById('btn-run').disabled=false;
-    setInfo(false,'Selesai! Jalur ditampilkan di kedua denah.');
-  });
+  if(dist&&prev) st.push({text:`Lurus ±${Math.round(dist*3.5)} m ke ${DNAME[prev]||'-'}`});
+  st.push({text:'Tiba di '+eL.name.replace(/^[^\s]+\s/,''),last:true});
+  return st;
 }
 
-function updateWalk(bl,al){
-  const M=1.5,S=0.9;
-  const fmt=s=>s<60?Math.round(s)+' detik':Math.floor(s/60)+'m '+Math.round(s%60)+'d';
-  $('wb-m','~'+(bl*M).toFixed(0)+' m'); $('wb-t',fmt(bl*M/S));
-  $('wa-m','~'+(al*M).toFixed(0)+' m'); $('wa-t',fmt(al*M/S));
-  document.getElementById('wb-m').className=bl<=al?'wv g':'wv';
-  document.getElementById('wa-m').className=al<=bl?'wv g':'wv';
-  document.getElementById('walk').classList.add('show');
+let startLoc=null,endLoc=null;
+
+function onSel(){
+  const sv=document.getElementById('sel-s').value;
+  const ev=document.getElementById('sel-e').value;
+  startLoc=sv?LOC_BY_ID[sv]:null;
+  endLoc=ev?LOC_BY_ID[ev]:null;
+  document.getElementById('pv-s').innerHTML=startLoc?`<span class="prev-val">${startLoc.name}</span>`:'<span class="prev-empty">Belum dipilih</span>';
+  document.getElementById('pv-e').innerHTML=endLoc?`<span class="prev-val">${endLoc.name}</span>`:'<span class="prev-empty">Belum dipilih</span>';
+  document.getElementById('btn-go').disabled=!(startLoc&&endLoc);
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('steps-box').classList.remove('show');
+  clearTimers();_vis=null;_path=null;redraw();
+  if(startLoc&&endLoc) setInfo(false,'Klik "Temukan Jalur" untuk memulai navigasi.');
 }
 
-// ════════════════════════════════════════════════════
-//  CLICK HANDLER
-// ════════════════════════════════════════════════════
-function handleClick(e,cv){
-  if(isAnim) return;
-  const rect=cv.getBoundingClientRect();
-  const sx=COLS*CELL/rect.width,sy=ROWS*CELL/rect.height;
-  const c=Math.floor((e.clientX-rect.left)*sx/CELL);
-  const r=Math.floor((e.clientY-rect.top)*sy/CELL);
-  if(r<0||r>=ROWS||c<0||c>=COLS) return;
-
-  // Find room
-  let rm=null;
-  for(const ro of ROOMS){
-    if(r>=ro.r1&&r<=ro.r2&&c>=ro.c1&&c<=ro.c2){rm=ro;break;}
-  }
-  if(!rm){
-    setInfo(false,'Klik di dalam ruangan (bukan koridor).');
-    return;
-  }
-
-  const entry=getEntry(rm);
-  if(!entry){setInfo(false,'Ruangan ini tidak punya akses koridor!');return;}
-
-  const node={...rm,entry};
-
-  if(mode==='start'){
-    startRoom=node;
-    document.getElementById('ds').textContent=rm.name;
-    setMode('end');
-    setInfo(false,'Titik awal dipilih. Sekarang klik titik tujuan.');
-  } else {
-    if(startRoom&&startRoom.r1===rm.r1&&startRoom.c1===rm.c1){
-      setInfo(false,'Pilih ruangan yang berbeda sebagai tujuan.');return;
-    }
-    endRoom=node;
-    document.getElementById('de').textContent=rm.name;
-    setInfo(false,'Kedua titik dipilih. Klik "Cari Jalur".');
-  }
-
-  document.getElementById('btn-run').disabled=!(startRoom&&endRoom);
-  redrawBoth();
+function findPath(){
+  if(!startLoc||!endLoc) return;
+  if(startLoc.id===endLoc.id){setInfo(false,'⚠️ Pilih lokasi berbeda!');return;}
+  clearTimers();_vis=null;_path=null;
+  setInfo(true,'Menghitung jalur…');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('steps-box').classList.remove('show');
+  const res=astar(startLoc.gc,startLoc.gr,endLoc.gc,endLoc.gr);
+  if(res.path){
+    const plen=res.path.length;
+    const dist=Math.round(plen*3.5);
+    const secs=Math.round(dist);
+    const tstr=secs<60?secs+' detik':Math.floor(secs/60)+'m '+Math.round(secs%60)+'d';
+    document.getElementById('r-dist').textContent='~'+dist+' m';
+    document.getElementById('r-time').textContent=tstr;
+    document.getElementById('r-steps').textContent=plen+' langkah';
+    document.getElementById('result').classList.add('show');
+    const st=genSteps(res.path,startLoc,endLoc);
+    document.getElementById('steps-list').innerHTML=st.map((s,i)=>`<div class="step"><div class="step-n${s.last?' last':''}">${s.first?'▶':s.last?'★':i}</div><div>${s.text}</div></div>`).join('');
+    document.getElementById('steps-box').classList.add('show');
+    animateFind(res.vis,res.path);
+  } else setInfo(false,'❌ Jalur tidak ditemukan.');
 }
 
-document.getElementById('cv-bfs').addEventListener('click',e=>handleClick(e,cv1));
-document.getElementById('cv-astr').addEventListener('click',e=>handleClick(e,cv2));
-
-function redrawBoth(){drawMap(ctx1,null,null,'bfs');drawMap(ctx2,null,null,'astr');}
-
-function setMode(m){
-  mode=m;
-  document.getElementById('mb-s').classList.toggle('active',m==='start');
-  document.getElementById('mb-e').classList.toggle('active',m==='end');
+function resetAll(){
+  clearTimers();startLoc=null;endLoc=null;_vis=null;_path=null;
+  ['sel-s','sel-e'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pv-s').innerHTML='<span class="prev-empty">Belum dipilih</span>';
+  document.getElementById('pv-e').innerHTML='<span class="prev-empty">Belum dipilih</span>';
+  document.getElementById('btn-go').disabled=true;
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('steps-box').classList.remove('show');
+  setInfo(false,'Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".');
+  redraw();
 }
 
-function clearAll(){
-  clearTimers();isAnim=false;startRoom=null;endRoom=null;
-  document.getElementById('ds').innerHTML='<span class="sel-empty">Belum dipilih</span>';
-  document.getElementById('de').innerHTML='<span class="sel-empty">Belum dipilih</span>';
-  document.getElementById('btn-run').disabled=true;
-  document.getElementById('walk').classList.remove('show');
-  document.getElementById('winner').className='winner';
-  ['b-v','b-p','b-t','a-v','a-p','a-t'].forEach(k=>$(k,'—'));
-  setInfo(false,'Klik ruangan untuk memilih titik awal.');
-  setMode('start');redrawBoth();
-}
-
-function $(id,val){document.getElementById(id).textContent=val;}
 function setInfo(on,msg){
   document.getElementById('idot').className='idot'+(on?' on':'');
   document.getElementById('itext').textContent=msg;
 }
 
-redrawBoth();
-setInfo(false,'Klik ruangan di denah untuk memilih titik awal perjalanan.');
+window.addEventListener('resize',()=>{resize();redraw();});
+resize();
+redraw();
 </script>
 </body>
 </html>
