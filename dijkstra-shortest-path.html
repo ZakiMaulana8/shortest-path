@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shortest Path — Algoritma Dijkstra</title>
+<style>
+  :root {
+    --blue-50: #E6F1FB; --blue-400: #378ADD; --blue-600: #185FA5; --blue-800: #0C447C;
+    --amber-50: #FAEEDA; --amber-400: #BA7517; --amber-600: #854F0B;
+    --green-50: #EAF3DE; --green-600: #3B6D11;
+    --gray-50: #F1EFE8; --gray-400: #888780; --gray-600: #5F5E5A; --gray-900: #2C2C2A;
+    --bg: #ffffff; --bg2: #F7F6F2; --bg3: #EDEDEA;
+    --text: #2C2C2A; --text2: #5F5E5A; --text3: #888780;
+    --border: rgba(44,44,42,.12); --border2: rgba(44,44,42,.25);
+    --radius: 10px; --radius-sm: 6px;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; }
+
+  /* Layout */
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 36px; }
+  header .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--blue-600); background: var(--blue-50); padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; }
+  h1 { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 8px; }
+  header p { color: var(--text2); font-size: 15px; }
+
+  /* Sections */
+  section { margin-bottom: 40px; }
+  h2 { font-size: 18px; font-weight: 600; margin-bottom: 14px; padding-left: 12px; border-left: 3px solid var(--blue-400); }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  p { color: var(--text2); font-size: 14.5px; margin-bottom: 10px; }
+
+  /* Concept cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { background: var(--bg2); border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); }
+  .card .icon { font-size: 22px; margin-bottom: 8px; }
+  .card h3 { font-size: 13.5px; color: var(--text); margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--text3); margin: 0; }
+
+  /* Steps */
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .step { counter-increment: step; display: flex; align-items: flex-start; gap: 12px; background: var(--bg2); border-radius: var(--radius-sm); padding: 12px 14px; border: 1px solid var(--border); }
+  .step::before { content: counter(step); min-width: 24px; height: 24px; border-radius: 50%; background: var(--blue-600); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step p { margin: 0; font-size: 13.5px; color: var(--text2); }
+  .step strong { color: var(--text); }
+
+  /* Complexity */
+  .complexity { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .complexity-card { flex: 1; min-width: 120px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; text-align: center; }
+  .complexity-card .val { font-size: 20px; font-weight: 700; color: var(--blue-600); font-family: var(--mono); }
+  .complexity-card .lbl { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  /* Visualizer */
+  #viz-section { background: var(--bg2); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); }
+  .ctrl-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .ctrl-row label { font-size: 13px; color: var(--text3); }
+  select { font-size: 13px; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; }
+  button { font-size: 13px; font-weight: 500; padding: 7px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; transition: all .15s; }
+  button:hover { background: var(--bg3); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.primary { background: var(--blue-600); color: #fff; border-color: var(--blue-600); }
+  button.primary:hover { background: var(--blue-800); }
+  #canvas-wrap { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--bg); }
+  canvas { display: block; width: 100%; height: auto; }
+
+  /* Distance table */
+  .dist-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .dist-pill { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); background: var(--bg); color: var(--text3); transition: all .3s; }
+  .dist-pill.visited { background: var(--blue-600); color: #fff; border-color: var(--blue-600); }
+  .dist-pill.current { background: var(--amber-400); color: #fff; border-color: var(--amber-400); }
+
+  /* Log */
+  #log { margin-top: 12px; font-size: 12.5px; color: var(--text3); background: var(--bg); border-radius: var(--radius-sm); padding: 10px 14px; min-height: 44px; max-height: 120px; overflow-y: auto; border: 1px solid var(--border); line-height: 1.6; }
+  #log b { color: var(--blue-600); }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); }
+  .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid; flex-shrink: 0; }
+
+  /* Pseudo-code */
+  pre { background: var(--gray-900); color: #c8e6c9; font-family: var(--mono); font-size: 13px; border-radius: var(--radius); padding: 18px 20px; overflow-x: auto; line-height: 1.8; }
+  pre .kw { color: #82b1ff; }
+  pre .fn { color: #ffd740; }
+  pre .cm { color: #546e7a; font-style: italic; }
+
+  /* Pros/cons */
+  .pro-con { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .pro-con .box { background: var(--bg2); border-radius: var(--radius-sm); padding: 14px 16px; border: 1px solid var(--border); }
+  .pro-con .box h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .pro-con .box.pro h3 { color: var(--green-600); }
+  .pro-con .box.con h3 { color: #A32D2D; }
+  .pro-con ul { padding-left: 16px; font-size: 13px; color: var(--text2); }
+  .pro-con ul li { margin-bottom: 5px; }
+  @media (max-width: 480px) { .pro-con { grid-template-columns: 1fr; } }
+
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-size: 12px; color: var(--text3); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">Struktur Data &amp; Algoritma</div>
+    <h1>Shortest Path dengan Algoritma Dijkstra</h1>
+    <p>Visualisasi interaktif untuk memahami cara menemukan jalur terpendek dalam graf berbobot.</p>
+  </header>
+
+  <!-- Konsep Dasar -->
+  <section>
+    <h2>Apa itu Shortest Path?</h2>
+    <p><strong>Shortest Path</strong> (jalur terpendek) adalah masalah klasik dalam teori graf — menemukan jalur dari satu simpul (node) ke simpul lain dengan total bobot terendah dalam graf berbobot.</p>
+    <p>Masalah ini sangat umum di dunia nyata: aplikasi peta (Google Maps), routing jaringan, perencanaan logistik, hingga game AI semuanya menggunakan konsep ini.</p>
+    <div class="cards">
+      <div class="card"><div class="icon">🗺️</div><h3>Graf (Graph)</h3><p>Kumpulan node (simpul) yang dihubungkan oleh edge (sisi/jalur) dengan bobot tertentu.</p></div>
+      <div class="card"><div class="icon">⚖️</div><h3>Bobot (Weight)</h3><p>Nilai numerik pada setiap edge — bisa berupa jarak, waktu, biaya, dll.</p></div>
+      <div class="card"><div class="icon">🏁</div><h3>Jalur Terpendek</h3><p>Urutan node dari sumber ke tujuan dengan total bobot paling minimum.</p></div>
+      <div class="card"><div class="icon">🔍</div><h3>Dijkstra</h3><p>Algoritma greedy yang menjamin jalur terpendek pada graf berbobot non-negatif.</p></div>
+    </div>
+  </section>
+
+  <!-- Cara Kerja -->
+  <section>
+    <h2>Cara Kerja Algoritma Dijkstra</h2>
+    <p>Algoritma Dijkstra bekerja secara <em>greedy</em> — selalu memilih node dengan jarak terkecil yang belum diproses.</p>
+    <div class="steps">
+      <div class="step"><p><strong>Inisialisasi:</strong> Set jarak sumber = 0, semua node lain = ∞. Masukkan semua node ke dalam priority queue.</p></div>
+      <div class="step"><p><strong>Pilih node minimum:</strong> Ambil node <em>u</em> dengan jarak terkecil dari queue yang belum dikunjungi.</p></div>
+      <div class="step"><p><strong>Kunjungi tetangga:</strong> Untuk setiap tetangga <em>v</em> dari <em>u</em>, hitung jarak baru = <code>dist[u] + bobot(u,v)</code>.</p></div>
+      <div class="step"><p><strong>Relaksasi:</strong> Jika jarak baru &lt; dist[v], update dist[v] = jarak baru dan catat prev[v] = u.</p></div>
+      <div class="step"><p><strong>Tandai dikunjungi:</strong> Tandai <em>u</em> sebagai "sudah selesai" agar tidak diproses ulang.</p></div>
+      <div class="step"><p><strong>Ulangi</strong> langkah 2–5 sampai queue kosong atau semua node terjangkau.</p></div>
+    </div>
+  </section>
+
+  <!-- Pseudo-code -->
+  <section>
+    <h2>Pseudo-code</h2>
+<pre><span class="fn">DIJKSTRA</span>(Graf G, sumber s):
+  <span class="cm">// Inisialisasi jarak semua node = tak terhingga</span>
+  <span class="kw">for</span> setiap node v <span class="kw">in</span> G:
+      dist[v] = ∞
+      prev[v] = NULL
+  dist[s] = 0
+
+  Q = semua node G  <span class="cm">// priority queue</span>
+
+  <span class="kw">while</span> Q tidak kosong:
+      u = node di Q dengan dist[u] terkecil
+      hapus u dari Q
+
+      <span class="kw">for</span> setiap tetangga v dari u:
+          alt = dist[u] + bobot(u, v)
+          <span class="kw">if</span> alt &lt; dist[v]:   <span class="cm">// relaksasi</span>
+              dist[v] = alt
+              prev[v] = u
+
+  <span class="kw">return</span> dist[], prev[]</pre>
+  </section>
+
+  <!-- Visualizer -->
+  <section>
+    <h2>Visualisasi Interaktif</h2>
+    <p>Pilih titik awal, lalu jalankan animasi atau tekan "Langkah berikutnya" untuk melihat prosesnya satu per satu. Klik node di canvas untuk memilihnya.</p>
+    <div id="viz-section">
+      <div class="ctrl-row">
+        <label>Titik awal:</label>
+        <select id="start-select"></select>
+        <button class="primary" id="btn-run">▶ Jalankan</button>
+        <button id="btn-step">Langkah ›</button>
+        <button id="btn-reset">↺ Reset</button>
+      </div>
+      <div id="canvas-wrap"><canvas id="c" width="640" height="360"></canvas></div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:var(--bg);border-color:var(--gray-400)"></div>Belum dikunjungi</div>
+        <div class="legend-item"><div class="dot" style="background:var(--amber-50);border-color:var(--amber-400)"></div>Sedang diproses</div>
+        <div class="legend-item"><div class="dot" style="background:var(--blue-50);border-color:var(--blue-600)"></div>Sudah selesai</div>
+        <div class="legend-item"><div class="dot" style="background:var(--green-50);border-color:var(--green-600)"></div>Jalur terpendek</div>
+      </div>
+      <div class="dist-row" id="dist-table"></div>
+      <div id="log">Pilih titik awal dan klik ▶ Jalankan untuk memulai.</div>
+    </div>
+  </section>
+
+  <!-- Kompleksitas -->
+  <section>
+    <h2>Analisis Kompleksitas</h2>
+    <div class="complexity">
+      <div class="complexity-card"><div class="val">O(V²)</div><div class="lbl">Implementasi array sederhana</div></div>
+      <div class="complexity-card"><div class="val">O((V+E) log V)</div><div class="lbl">Dengan binary heap / priority queue</div></div>
+      <div class="complexity-card"><div class="val">O(E + V log V)</div><div class="lbl">Dengan Fibonacci heap (optimal)</div></div>
+    </div>
+    <p style="margin-top:12px;font-size:13px;">V = jumlah vertex (node), E = jumlah edge. Untuk graf jarang (sparse graph), implementasi dengan priority queue jauh lebih efisien.</p>
+  </section>
+
+  <!-- Kelebihan & Kekurangan -->
+  <section>
+    <h2>Kelebihan &amp; Kekurangan</h2>
+    <div class="pro-con">
+      <div class="box pro">
+        <h3>✓ Kelebihan</h3>
+        <ul>
+          <li>Menjamin jalur terpendek yang optimal</li>
+          <li>Efisien dengan priority queue</li>
+          <li>Mudah diimplementasikan</li>
+          <li>Bisa mencari ke semua node sekaligus</li>
+        </ul>
+      </div>
+      <div class="box con">
+        <h3>✗ Kekurangan</h3>
+        <ul>
+          <li>Tidak bisa menangani bobot negatif</li>
+          <li>Lambat untuk graf sangat besar</li>
+          <li>Mengunjungi banyak node yang tidak perlu (tanpa heuristik)</li>
+          <li>Gunakan Bellman-Ford jika ada bobot negatif</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contoh Nyata -->
+  <section>
+    <h2>Contoh Penerapan</h2>
+    <div class="cards">
+      <div class="card"><div class="icon">🗺️</div><h3>Google Maps / Waze</h3><p>Mencari rute tercepat/terpendek antar lokasi berdasarkan jarak atau waktu tempuh.</p></div>
+      <div class="card"><div class="icon">🌐</div><h3>Routing Jaringan</h3><p>Protokol OSPF menggunakan Dijkstra untuk menentukan jalur data terbaik antar router.</p></div>
+      <div class="card"><div class="icon">🎮</div><h3>Game AI (Pathfinding)</h3><p>Karakter NPC mencari jalur terpendek menuju tujuan menghindari rintangan.</p></div>
+      <div class="card"><div class="icon">🚚</div><h3>Logistik & Pengiriman</h3><p>Optimasi rute pengiriman paket atau distribusi barang antar gudang.</p></div>
+    </div>
+  </section>
+
+  <footer>Dibuat untuk tugas Struktur Data &amp; Algoritma &bull; Materi: Shortest Path dengan Dijkstra</footer>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 640, H = 360;
+
+const NODES = {
+  A: { x: 80,  y: 180 }, B: { x: 200, y: 70  }, C: { x: 200, y: 290 },
+  D: { x: 340, y: 130 }, E: { x: 340, y: 250 },
+  F: { x: 470, y: 70  }, G: { x: 560, y: 200 },
+};
+const EDGES = [
+  ['A','B',4], ['A','C',2], ['B','D',5], ['B','C',1],
+  ['C','E',8], ['C','D',8], ['D','F',2], ['D','E',2],
+  ['E','G',3], ['F','G',1],
+];
+const R = 24;
+
+let state = { dist:{}, prev:{}, visited:new Set(), current:null, done:false, started:false, steps:[], stepIdx:0, source:'A', adj:{} };
+
+function buildAdj() {
+  const adj = {};
+  Object.keys(NODES).forEach(n => adj[n] = []);
+  EDGES.forEach(([u,v,w]) => { adj[u].push([v,w]); adj[v].push([u,w]); });
+  return adj;
+}
+
+function initState(src) {
+  const adj = buildAdj();
+  const dist = {}, prev = {};
+  Object.keys(NODES).forEach(n => { dist[n] = Infinity; prev[n] = null; }); dist[src] = 0;
+  state = { dist, prev, visited:new Set(), current:null, done:false, started:true, steps:[], stepIdx:0, source:src, adj };
+  precompute(src);
+  applyStep(0); updateUI();
+}
+
+function precompute(src) {
+  const adj = state.adj;
+  const dist={}, prev={}, visited=new Set(), queue=Object.keys(NODES).slice();
+  Object.keys(NODES).forEach(n=>{dist[n]=Infinity;prev[n]=null;}); dist[src]=0;
+  const steps=[{dist:{...dist},prev:{...prev},visited:new Set(visited),current:null,msg:`Inisialisasi: jarak <b>${src}</b> = 0, semua node lain = ∞`}];
+  while(queue.length){
+    const u=queue.filter(n=>!visited.has(n)).sort((a,b)=>dist[a]-dist[b])[0];
+    if(!u||dist[u]===Infinity) break;
+    visited.add(u);
+    const msgs=[`Memproses node <b>${u}</b> (jarak saat ini = ${dist[u]})`];
+    adj[u].forEach(([v,w])=>{
+      if(!visited.has(v)){
+        const nd=dist[u]+w;
+        if(nd<dist[v]){dist[v]=nd;prev[v]=u;msgs.push(`&nbsp;&nbsp;→ Update <b>${v}</b>: ${dist[u]} + ${w} = <b>${nd}</b> ✓`);}
+        else{msgs.push(`&nbsp;&nbsp;→ ${v}: ${dist[v]} sudah optimal`);}
+      }
+    });
+    steps.push({dist:{...dist},prev:{...prev},visited:new Set(visited),current:u,msg:msgs.join('<br>')});
+  }
+  steps.push({dist:{...dist},prev:{...prev},visited:new Set(visited),current:null,msg:'<b>✓ Selesai!</b> Semua jalur terpendek dari <b>'+src+'</b> telah ditemukan.'});
+  state.steps=steps;
+}
+
+function getPath(target){
+  const p=[]; let cur=target;
+  while(cur){p.unshift(cur);cur=state.prev[cur];}
+  return p.length>1?p:[];
+}
+
+function applyStep(idx){
+  if(idx>=state.steps.length) idx=state.steps.length-1;
+  const s=state.steps[idx];
+  state.dist={...s.dist}; state.prev={...s.prev};
+  state.visited=new Set(s.visited); state.current=s.current;
+  state.stepIdx=idx; state.done=(idx===state.steps.length-1);
+  document.getElementById('log').innerHTML=s.msg;
+  updateDistTable(); draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  EDGES.forEach(([u,v,w])=>{
+    const a=NODES[u],b=NODES[v];
+    const pu=state.prev[v]===u, pv=state.prev[u]===v;
+    const onPath=pu||pv;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=onPath?'#185FA5':'rgba(100,100,90,.2)';
+    ctx.lineWidth=onPath?2.5:1; ctx.stroke();
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    const dx=b.y-a.y,dy=a.x-b.x,len=Math.sqrt(dx*dx+dy*dy);
+    ctx.fillStyle='#888780'; ctx.font='11px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w, mx+dx/len*14, my+dy/len*14);
+  });
+  Object.entries(NODES).forEach(([id,n])=>{
+    const vis=state.visited.has(id), cur=state.current===id, src=id===state.source;
+    ctx.beginPath(); ctx.arc(n.x,n.y,R,0,Math.PI*2);
+    ctx.fillStyle=cur?'#FAEEDA':(vis?'#E6F1FB':'#ffffff'); ctx.fill();
+    ctx.strokeStyle=cur?'#BA7517':(vis?'#185FA5':'#B4B2A9');
+    ctx.lineWidth=(cur||src)?2:1; ctx.stroke();
+    ctx.fillStyle=cur?'#854F0B':(vis?'#0C447C':'#2C2C2A');
+    ctx.font='500 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(id,n.x,n.y-4);
+    const d=state.dist[id];
+    ctx.font='11px Segoe UI';
+    ctx.fillStyle=cur?'#854F0B':(vis?'#185FA5':'#888780');
+    ctx.fillText(d===Infinity?'∞':d,n.x,n.y+9);
+  });
+}
+
+function updateDistTable(){
+  document.getElementById('dist-table').innerHTML=Object.keys(NODES).map(id=>{
+    const d=state.dist[id], cur=state.current===id, vis=state.visited.has(id);
+    const cls=cur?'dist-pill current':(vis?'dist-pill visited':'dist-pill');
+    return `<div class="${cls}"><b>${id}</b>: ${d===Infinity?'∞':d}</div>`;
+  }).join('');
+}
+
+function updateUI(){
+  document.getElementById('btn-step').disabled=!state.started||state.done;
+  document.getElementById('btn-run').disabled=state.started&&!state.done;
+}
+
+document.getElementById('btn-run').addEventListener('click',()=>{
+  const src=document.getElementById('start-select').value;
+  initState(src);
+  let i=1;
+  const go=()=>{if(i<state.steps.length){applyStep(i++);setTimeout(go,700);}else{state.done=true;updateUI();}};
+  setTimeout(go,400);
+});
+document.getElementById('btn-step').addEventListener('click',()=>{
+  if(!state.started){initState(document.getElementById('start-select').value);return;}
+  if(state.stepIdx<state.steps.length-1) applyStep(state.stepIdx+1);
+  if(state.stepIdx===state.steps.length-1){state.done=true;updateUI();}
+});
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  state={dist:{},prev:{},visited:new Set(),current:null,done:false,started:false,steps:[],stepIdx:0,source:'A',adj:{}};
+  document.getElementById('log').textContent='Pilih titik awal dan klik ▶ Jalankan untuk memulai.';
+  document.getElementById('dist-table').innerHTML='';
+  updateUI(); draw();
+});
+
+const sel=document.getElementById('start-select');
+Object.keys(NODES).forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=`Node ${id}`;sel.appendChild(o);});
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect(), sx=W/rect.width, sy=H/rect.height;
+  const mx=(e.clientX-rect.left)*sx, my=(e.clientY-rect.top)*sy;
+  Object.entries(NODES).forEach(([id,n])=>{if(Math.hypot(mx-n.x,my-n.y)<R+4) sel.value=id;});
+});
+
+updateUI(); draw();
+</script>
+</body>
+</html>

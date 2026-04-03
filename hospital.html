@@ -1,811 +1,1433 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navigasi RSD Wongsonegoro Semarang</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#f0f4f8;--paper:#fff;--ink:#0f172a;--ink2:#475569;--ink3:#94a3b8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--blue:#2563eb;--path:#0ea5e9;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{background:var(--paper);border-bottom:3px solid var(--red);height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.07);}
-.brand{display:flex;align-items:center;gap:9px;}
-.brand-ico{width:32px;height:32px;background:var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;}
-.brand-name{font-weight:800;font-size:.85rem;line-height:1.25;}
-.brand-sub{font-size:.55rem;color:var(--ink3);}
-.layout{display:flex;flex:1;overflow:hidden;}
-.sidebar{width:255px;flex-shrink:0;background:var(--paper);border-right:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
-.s-sec{display:flex;flex-direction:column;gap:6px;}
-.s-ttl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:3px;border-bottom:1px solid var(--border);}
-.sel-lbl{font-size:.66rem;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:5px;}
-.dot-s{width:7px;height:7px;border-radius:50%;background:#2563eb;flex-shrink:0;}
-.dot-e{width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;}
-select{width:100%;padding:7px 26px 7px 9px;border:1.5px solid #cbd5e1;border-radius:6px;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
-select:focus{outline:none;border-color:var(--blue);}
-.preview{background:#f8fafc;border:1.5px solid var(--border);border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:4px;}
-.prev-row{display:flex;align-items:center;gap:6px;font-size:.68rem;}
-.prev-val{font-weight:600;color:var(--ink);}
-.prev-empty{color:var(--ink3);font-style:italic;}
-.btn-go{padding:10px;background:var(--red);border:none;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;border-radius:7px;transition:all .2s;box-shadow:0 2px 8px rgba(220,38,38,.22);}
-.btn-go:hover:not(:disabled){background:#b91c1c;transform:translateY(-1px);}
-.btn-go:disabled{opacity:.35;cursor:not-allowed;}
-.btn-rst{padding:6px;background:transparent;border:1.5px solid #cbd5e1;color:var(--ink2);font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer;border-radius:6px;}
-.btn-rst:hover{border-color:var(--ink);color:var(--ink);}
-.result{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #bfdbfe;border-radius:8px;padding:10px;display:none;}
-.result.show{display:block;}
-.res-ttl{font-weight:700;font-size:.7rem;color:var(--blue);margin-bottom:6px;}
-.res-row{display:flex;justify-content:space-between;font-size:.65rem;color:var(--ink2);margin-top:3px;}
-.res-row b{color:var(--ink);font-weight:600;}
-.res-row b.g{color:var(--green);}
-.steps{background:#f8fafc;border:1.5px solid var(--border);border-radius:7px;padding:9px;display:none;max-height:160px;overflow-y:auto;}
-.steps.show{display:block;}
-.steps-ttl{font-size:.58rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
-.step{display:flex;gap:6px;align-items:flex-start;font-size:.65rem;color:var(--ink2);padding:3px 0;border-bottom:1px solid var(--border);}
-.step:last-child{border-bottom:none;}
-.step-n{width:16px;height:16px;border-radius:50%;background:var(--blue);color:#fff;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.step-n.last{background:var(--red);}
-.leg-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
-.leg{display:flex;align-items:center;gap:4px;font-size:.56rem;color:var(--ink2);}
-.lsw{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
-.content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px;gap:8px;}
-.infobar{background:var(--paper);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:.65rem;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.idot{width:6px;height:6px;border-radius:50%;background:var(--ink3);flex-shrink:0;}
-.idot.on{background:var(--path);animation:blink 1s infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-.map-wrap{flex:1;background:#8fa4b8;border:1px solid var(--border);border-radius:9px;overflow:hidden;position:relative;}
-canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
-.map-credit{position:absolute;bottom:5px;right:7px;font-size:.5rem;color:rgba(255,255,255,.8);padding:2px 5px;border-radius:3px;pointer-events:none;}
-</style>
-</head>
-<body>
-<div class="topbar">
-  <div class="brand">
-    <div class="brand-ico">✚</div>
-    <div><div class="brand-name">RSD K.R.M.T. Wongsonegoro</div><div class="brand-sub">Sistem Navigasi • Kota Semarang</div></div>
-  </div>
-  <div style="font-size:.6rem;color:var(--ink3);font-family:'DM Mono',monospace;">Jl. Fatmawati No.1 · Tembalang · Semarang</div>
-</div>
-<div class="layout">
-<div class="sidebar">
-  <div class="s-sec">
-    <div class="s-ttl">📍 Pilih Rute</div>
-    <div style="display:flex;flex-direction:column;gap:4px;">
-      <div class="sel-lbl"><div class="dot-s"></div>Lokasi Awal</div>
-      <select id="sel-s" onchange="onSel()"><option value="">— Pilih lokasi —</option></select>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:4px;">
-      <div class="sel-lbl"><div class="dot-e"></div>Lokasi Tujuan</div>
-      <select id="sel-e" onchange="onSel()"><option value="">— Pilih lokasi —</option></select>
-    </div>
-  </div>
-  <div class="preview">
-    <div class="prev-row"><span>🔵</span><span id="pv-s"><span class="prev-empty">Belum dipilih</span></span></div>
-    <div style="width:100%;height:1px;background:#e2e8f0;"></div>
-    <div class="prev-row"><span>🔴</span><span id="pv-e"><span class="prev-empty">Belum dipilih</span></span></div>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:4px;">
-    <button class="btn-go" id="btn-go" onclick="findPath()" disabled>🧭 TEMUKAN JALUR</button>
-    <button class="btn-rst" onclick="resetAll()">↺ Reset</button>
-  </div>
-  <div class="result" id="result">
-    <div class="res-ttl">✅ Jalur Ditemukan</div>
-    <div class="res-row"><span>Estimasi jarak</span><b id="r-dist">—</b></div>
-    <div class="res-row"><span>Estimasi waktu</span><b class="g" id="r-time">—</b></div>
-    <div class="res-row"><span>Langkah</span><b id="r-steps">—</b></div>
-  </div>
-  <div class="steps" id="steps-box">
-    <div class="steps-ttl">🗺️ Petunjuk Arah</div>
-    <div id="steps-list"></div>
-  </div>
-  <div class="s-sec">
-    <div class="s-ttl">🎨 Keterangan</div>
-    <div class="leg-grid">
-      <div class="leg"><div class="lsw" style="background:#dc2626"></div>IGD / IBS / ICU</div>
-      <div class="leg"><div class="lsw" style="background:#16a34a"></div>Paviliun / Hijau</div>
-      <div class="leg"><div class="lsw" style="background:#ea580c"></div>Rawat Jalan</div>
-      <div class="leg"><div class="lsw" style="background:#ca8a04"></div>Fasilitas</div>
-      <div class="leg"><div class="lsw" style="background:rgba(251,146,60,.5)"></div>Area Parkir</div>
-      <div class="leg"><div class="lsw" style="background:#15803d"></div>Masjid</div>
-      <div class="leg"><div class="lsw" style="background:#0ea5e9"></div>Jalur Navigasi</div>
-    </div>
-  </div>
-</div>
-<div class="content">
-  <div class="infobar"><div class="idot" id="idot"></div><span id="itext">Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".</span></div>
-  <div class="map-wrap" id="mapwrap">
-    <canvas id="cv"></canvas>
-    <div class="map-credit">RSD K.R.M.T. Wongsonegoro · Semarang</div>
-  </div>
-</div>
-</div>
-
-<script>
-// ═══════════════════════════════════════════════════════════════
-// Sistem koordinat logis: 800 × 680 px
-// Bangunan & jalan digambar langsung ke canvas (bukan grid sel)
-// sesuai proporsi gambar denah asli.
-//
-// Layout gambar asli (dari kiri ke kanan, atas ke bawah):
-//  UTARA = atas | Jl.Fatmawati = kanan | MASUK = kanan bawah
-//
-// Jalan internal membentuk grid tidak seragam sesuai aslinya.
-// Setiap bangunan punya ukuran unik sesuai gambar.
-// ═══════════════════════════════════════════════════════════════
-
-// Ukuran canvas logis
-const LW = 800, LH = 680;
-
-// Navigasi grid (sel kecil ~5px logis)
-const GC = 160, GR = 136;
-const CW_G = LW/GC, CH_G = LH/GR; // ~5px per sel
-
-const NAV = new Uint8Array(GC * GR); // 0=tembok, 1=jalan
-const GK  = (c,r) => r*GC+c;
-
-// ── Warna bangunan ──
-const COL = {
-  road:'#d5e0ee', outer:'#7a90a4', parkir:'rgba(251,146,60,.33)',
-  red:'#dc2626', green:'#16a34a', org:'#ea580c',
-  yel:'#ca8a04', mosq:'#15803d', gray:'#6b7280', teal:'#0d9488',
-  lapangan:'rgba(134,239,172,.45)',
-};
-
-// ─────────────────────────────────────────────────────────────
-// BANGUNAN — {x,y,w,h,label,color,rot?}
-// Koordinat pixel logis, diukur dari gambar asli
-// Bangunan berbeda-beda ukuran sesuai aslinya
-// ─────────────────────────────────────────────────────────────
-const BLDG = [
-  // ══ AREA PARKIR UTARA (baris paling atas, lebar bervariasi) ══
-  {x:12,  y:12,  w:118, h:46, label:'AREA\nPARKIR',        color:COL.parkir},
-  {x:142, y:12,  w:55,  h:46, label:'GEDUNG\nGIZI',        color:COL.yel},
-  {x:209, y:12,  w:148, h:46, label:'AREA PARKIR',         color:COL.parkir},
-  {x:369, y:12,  w:100, h:46, label:'AREA PARKIR',         color:COL.parkir},
-  {x:481, y:12,  w:100, h:46, label:'AREA PARKIR',         color:COL.parkir},
-  {x:600, y:12,  w:80,  h:46, label:'AREA\nPARKIR',        color:COL.parkir},
-
-  // ══ KOLOM KIRI ATAS (kecil, di bawah jalan lingkar atas) ══
-  {x:12,  y:72,  w:48,  h:32, label:'IPAL',                color:COL.yel},
-  {x:12,  y:117, w:48,  h:32, label:'K3',                  color:COL.yel},
-  {x:12,  y:162, w:48,  h:42, label:'GD. ASET\n& POOL',    color:COL.yel},
-
-  // ══ UNIT KANKER TERPADU — hijau, besar, kiri ══
-  {x:12,  y:218, w:72,  h:88, label:'UNIT\nKANKER\nTERPADU',color:COL.green},
-
-  // Poli TB — merah kecil memanjang
-  {x:12,  y:319, w:48,  h:30, label:'POLI TB',             color:COL.red},
-  // Gedung Arjuna — merah, lebih besar
-  {x:12,  y:362, w:72,  h:55, label:'GEDUNG\nARJUNA',      color:COL.red},
-
-  // ══ KOLOM KE-2 ══
-  {x:72,  y:72,  w:60,  h:32, label:'SIMRS',               color:COL.yel},
-  {x:72,  y:117, w:60,  h:32, label:'KANTIN',              color:COL.yel},
-  {x:72,  y:162, w:60,  h:32, label:'LAUNDRY',             color:COL.yel},
-  {x:72,  y:207, w:60,  h:52, label:'GEDUNG\nNAKULA',      color:COL.org},
-  {x:72,  y:272, w:60,  h:52, label:'GEDUNG\nSADEWA',      color:COL.org},
-  {x:72,  y:337, w:60,  h:52, label:'GEDUNG\nBANOWATI',    color:COL.org},
-
-  // ══ KOLOM KE-3 ══
-  {x:144, y:72,  w:52,  h:32, label:'SMF',                 color:COL.yel},
-  // Taman Renang (kecil, abu)
-  {x:144, y:117, w:52,  h:32, label:'TAMAN\nRENANG',       color:COL.gray},
-  {x:144, y:162, w:52,  h:52, label:'GEDUNG\nYUDISTIRA',   color:COL.org},
-  {x:144, y:227, w:52,  h:52, label:'GEDUNG\nBIMA',        color:COL.org},
-  {x:144, y:292, w:52,  h:52, label:'GEDUNG\nARIMBI',      color:COL.org},
-
-  // ══ KOMITE MEDIK + REHAB MEDIK (kolom 4, kiri-tengah) ══
-  {x:208, y:72,  w:75,  h:32, label:'GD. REHAB\nMEDIK',   color:COL.yel},
-  {x:208, y:117, w:75,  h:32, label:'KOMITE\nMEDIK',       color:COL.yel},
-
-  // ══ LAPANGAN UPACARA — besar, tengah atas ══
-  {x:295, y:72,  w:62,  h:90, label:'LAPANGAN\nUPACARA',   color:COL.lapangan},
-
-  // ══ PAVILIUN BISMA — HIJAU BESAR memanjang horizontal ══
-  {x:208, y:162, w:210, h:110, label:'PAVILIUN BISMA',     color:COL.green},
-
-  // ══ PAVILIUN GATOTKACA — hijau besar kanan atas ══
-  {x:369, y:72,  w:180, h:165, label:'PAVILIUN\nGATOTKACA',color:COL.green},
-
-  // ══ AREA PARKIR KANAN (vertikal, 3 blok) ══
-  {x:562, y:72,  w:98,  h:80, label:'AREA\nPARKIR',        color:COL.parkir},
-  {x:562, y:165, w:98,  h:85, label:'AREA\nPARKIR',        color:COL.parkir},
-  {x:562, y:263, w:98,  h:90, label:'AREA\nPARKIR',        color:COL.parkir},
-  {x:562, y:366, w:98,  h:85, label:'AREA\nPARKIR',        color:COL.parkir},
-
-  // ══ TENGAH (baris 3) ══
-  {x:208, y:285, w:82,  h:55, label:'GEDUNG\nABIMANYU',   color:COL.org},
-  {x:208, y:353, w:82,  h:55, label:'GEDUNG\nPRABU\nKRESNA',color:COL.org},
-
-  // Paviliun Amarta — hijau, kanan tengah
-  {x:303, y:285, w:88,  h:92, label:'PAVILIUN\nAMARTA',    color:COL.green},
-
-  // Laborat Central — oranye, kecil
-  {x:303, y:390, w:88,  h:38, label:'LABORAT\nCENTRAL',    color:COL.org},
-
-  // ══ BARIS BAWAH KIRI ══
-  {x:12,  y:440, w:85,  h:52, label:'KAMAR\nJENAZAH',      color:COL.gray},
-  {x:109, y:440, w:88,  h:52, label:'AREA\nPARKIR',        color:COL.parkir},
-
-  // ══ IBS/ICU/RADIOLOGI — MERAH BESAR ══
-  {x:208, y:440, w:138, h:115, label:'IBS / ICU\nRADIOLOGI\nTERPADU', color:COL.red},
-
-  // CSSD — kuning kecil
-  {x:358, y:440, w:55,  h:52, label:'GEDUNG\nCSSD',         color:COL.yel},
-  // Brotojoyo — hijau kecil di bawah CSSD
-  {x:358, y:504, w:55,  h:51, label:'GD.\nBROTOJOYO',       color:COL.green},
-
-  // ══ IGD — MERAH, lebih kecil dari IBS ══
-  {x:425, y:440, w:125, h:115, label:'IGD',                 color:COL.red},
-
-  // ══ PARKIR KANAN BAWAH ══
-  {x:562, y:464, w:98,  h:91, label:'AREA\nPARKIR',        color:COL.parkir},
-
-  // ══ BARIS PALING BAWAH ══
-  {x:12,  y:505, w:185, h:42, label:'AREA PARKIR',          color:COL.parkir},
-  {x:208, y:570, w:185, h:38, label:'AREA PARKIR',          color:COL.parkir},
-  // Koperasi — hijau kecil
-  {x:408, y:578, w:68,  h:50, label:'KOPERASI',             color:COL.green},
-  // Area parkir bawah paling bawah
-  {x:12,  y:560, w:185, h:38, label:'AREA PARKIR',          color:COL.parkir},
-
-  // ══ MASJID — hijau tua, agak miring (kanan bawah) ══
-  // Digambar dengan rotasi sedikit
-  {x:483, y:570, w:155, h:88, label:'MASJID', color:COL.mosq, rot:-0.12},
-];
-
-// ─────────────────────────────────────────────────────────────
-// JALAN — [{pts:[...], w}]
-// Setiap jalan = polyline dengan lebar w
-// ─────────────────────────────────────────────────────────────
-const ROADS = [
-  // Jalan Lingkar Luar
-  {pts:[12,58,  688,58],  w:15, label:null},    // atas
-  {pts:[12,632, 688,632], w:15, label:null},    // bawah
-  {pts:[0, 58,  0,  632], w:16, label:null},    // kiri
-  {pts:[700,0,  700,680], w:25, label:'JL. FATMAWATI\nKOTA SEMARANG'}, // kanan utama
-
-  // Jalan dalam sisi kanan (sebelum Jl.Fatmawati)
-  {pts:[672,58, 672,632], w:14, label:null},
-
-  // Jalan internal HORIZONTAL (berbeda-beda panjang & posisi)
-  {pts:[12,70,  672,70],  w:10, label:null},   // H1 - batas atas bangunan baris 1
-  {pts:[12,108, 672,108], w:10, label:null},   // H2
-  {pts:[12,152, 672,152], w:10, label:null},   // H3
-  {pts:[12,205, 672,205], w:10, label:null},   // H4
-  {pts:[12,260, 672,260], w:10, label:null},   // H5
-  {pts:[12,328, 672,328], w:10, label:null},   // H6
-  {pts:[12,395, 672,395], w:10, label:null},   // H7
-  {pts:[12,432, 672,432], w:10, label:null},   // H8
-  {pts:[12,558, 672,558], w:10, label:null},   // H9
-  {pts:[12,568, 672,568], w:10, label:null},   // H10 bawah IGD
-
-  // Jalan internal VERTIKAL (berbeda-beda tinggi)
-  {pts:[62,  58, 62,  632], w:10, label:null},  // V1
-  {pts:[133, 58, 133, 632], w:10, label:null},  // V2
-  {pts:[199, 58, 199, 632], w:10, label:null},  // V3
-  {pts:[292, 58, 292, 632], w:10, label:null},  // V4
-  {pts:[395, 58, 395, 632], w:10, label:null},  // V5
-  {pts:[555, 58, 555, 632], w:10, label:null},  // V6
-
-  // Jalan pintu MASUK — kanan bawah
-  {pts:[672,558, 720,558], w:15, label:null},
-  {pts:[672,632, 720,632], w:15, label:null},
-  {pts:[720,558, 720,632], w:15, label:null},
-  // Jalan pintu KELUAR — kanan tengah
-  {pts:[672,395, 720,395], w:15, label:null},
-  {pts:[672,432, 720,432], w:15, label:null},
-  {pts:[720,395, 720,432], w:15, label:null},
-
-  // Jalan kecil dalam (antara bangunan yg tidak reguler)
-  {pts:[395,260, 555,260], w:8, label:null},    // di atas Amarta
-  {pts:[395,380, 555,380], w:8, label:null},    // bawah Amarta
-];
-
-// ─────────────────────────────────────────────────────────────
-// Bangun NAV grid dari definisi jalan
-// ─────────────────────────────────────────────────────────────
-function px2c(x){ return Math.min(GC-1,Math.max(0,Math.floor(x/CW_G))); }
-function px2r(y){ return Math.min(GR-1,Math.max(0,Math.floor(y/CH_G))); }
-function c2px(c){ return c*CW_G+CW_G/2; }
-function r2py(r){ return r*CH_G+CH_G/2; }
-
-ROADS.forEach(rd=>{
-  const hw=rd.w/2;
-  for(let i=0;i<rd.pts.length-2;i+=2){
-    const x1=rd.pts[i],y1=rd.pts[i+1],x2=rd.pts[i+2],y2=rd.pts[i+3];
-    const c1=px2c(Math.min(x1,x2)-hw-1), c2=px2c(Math.max(x1,x2)+hw+1);
-    const r1=px2r(Math.min(y1,y2)-hw-1), r2=px2r(Math.max(y1,y2)+hw+1);
-    for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) NAV[GK(c,r)]=1;
-  }
-});
-// Tandai interior bangunan sebagai tembok
-BLDG.forEach(b=>{
-  const pad=3;
-  const c1=px2c(b.x+pad),c2=px2c(b.x+b.w-pad);
-  const r1=px2r(b.y+pad),r2=px2r(b.y+b.h-pad);
-  for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) NAV[GK(c,r)]=0;
-});
-
-// ─────────────────────────────────────────────────────────────
-// LOKASI NAVIGASI
-// ─────────────────────────────────────────────────────────────
-const LOCS=[
-  {id:'masuk',     name:'🚪 Pintu Masuk (Jl. Fatmawati)', cat:'akses',    px:710,py:595},
-  {id:'keluar',    name:'🚪 Pintu Keluar (Jl. Fatmawati)',cat:'akses',    px:710,py:413},
-  {id:'igd',       name:'🚑 IGD',                         cat:'darurat',  px:487,py:497},
-  {id:'ibs',       name:'🔴 IBS / ICU / Radiologi',       cat:'darurat',  px:277,py:497},
-  {id:'bisma',     name:'🏥 Paviliun Bisma',              cat:'pavilun',  px:313,py:217},
-  {id:'amarta',    name:'🏥 Paviliun Amarta',             cat:'pavilun',  px:347,py:331},
-  {id:'gatot',     name:'🏥 Paviliun Gatotkaca',          cat:'pavilun',  px:459,py:154},
-  {id:'kanker',    name:'🏥 Unit Kanker Terpadu',         cat:'pavilun',  px:48, py:262},
-  {id:'broto',     name:'🏥 Gedung Brotojoyo',            cat:'pavilun',  px:385,py:529},
-  {id:'arjuna',    name:'🏢 Gedung Arjuna',               cat:'rawat',    px:48, py:389},
-  {id:'nakula',    name:'🏢 Gedung Nakula',               cat:'rawat',    px:102,py:233},
-  {id:'sadewa',    name:'🏢 Gedung Sadewa',               cat:'rawat',    px:102,py:298},
-  {id:'banowati',  name:'🏢 Gedung Banowati',             cat:'rawat',    px:102,py:363},
-  {id:'yudistira', name:'🏢 Gedung Yudistira',            cat:'rawat',    px:170,py:188},
-  {id:'bima',      name:'🏢 Gedung Bima',                 cat:'rawat',    px:170,py:253},
-  {id:'arimbi',    name:'🏢 Gedung Arimbi',               cat:'rawat',    px:170,py:318},
-  {id:'abimanyu',  name:'🏢 Gedung Abimanyu',             cat:'rawat',    px:249,py:312},
-  {id:'prabu',     name:'🏢 Gedung Prabu Kresna',         cat:'rawat',    px:249,py:380},
-  {id:'lab',       name:'🔬 Laborat Central',             cat:'rawat',    px:347,py:409},
-  {id:'cssd',      name:'🧪 Gedung CSSD',                 cat:'rawat',    px:385,py:466},
-  {id:'rehab',     name:'🏃 Rehabilitasi Medik',          cat:'rawat',    px:245,py:88},
-  {id:'ipal',      name:'🌊 IPAL',                        cat:'fasilitas',px:36, py:88},
-  {id:'k3',        name:'🦺 K3',                          cat:'fasilitas',px:36, py:133},
-  {id:'aset',      name:'🏢 Gedung Aset & Pool',          cat:'fasilitas',px:36, py:183},
-  {id:'simrs',     name:'💻 SIMRS',                       cat:'fasilitas',px:102,py:88},
-  {id:'kantin',    name:'🍴 Kantin',                      cat:'fasilitas',px:102,py:133},
-  {id:'laundry',   name:'👕 Laundry',                     cat:'fasilitas',px:102,py:178},
-  {id:'gizi',      name:'🍽️ Gedung Gizi',                 cat:'fasilitas',px:170,py:35},
-  {id:'smf',       name:'💊 SMF',                         cat:'fasilitas',px:170,py:88},
-  {id:'komite',    name:'📋 Komite Medik',                 cat:'fasilitas',px:245,py:133},
-  {id:'lapangan',  name:'🟩 Lapangan Upacara',            cat:'fasilitas',px:326,py:117},
-  {id:'masjid',    name:'🕌 Masjid',                      cat:'lain',     px:560,py:614},
-  {id:'koperasi',  name:'🛒 Koperasi',                    cat:'lain',     px:442,py:603},
-  {id:'jenazah',   name:'⚰️ Kamar Jenazah',               cat:'lain',     px:54, py:466},
-  {id:'parkir1',   name:'🅿️ Parkir Utara',                cat:'parkir',   px:60, py:35},
-  {id:'parkir2',   name:'🅿️ Parkir Timur Atas',           cat:'parkir',   px:611,py:110},
-  {id:'parkir3',   name:'🅿️ Parkir Timur Tengah',         cat:'parkir',   px:611,py:310},
-  {id:'parkir4',   name:'🅿️ Parkir Selatan',              cat:'parkir',   px:60, py:540},
-];
-const LOC_BY_ID={};
-LOCS.forEach(l=>LOC_BY_ID[l.id]=l);
-
-function snapWalk(px,py){
-  const c0=px2c(px),r0=px2r(py);
-  if(NAV[GK(c0,r0)]) return{gc:c0,gr:r0};
-  let best=null,bd=99999;
-  for(let dr=-15;dr<=15;dr++) for(let dc=-15;dc<=15;dc++){
-    const r=r0+dr,c=c0+dc;
-    if(r<0||r>=GR||c<0||c>=GC) continue;
-    if(!NAV[GK(c,r)]) continue;
-    const d=dr*dr+dc*dc;
-    if(d<bd){bd=d;best={gc:c,gr:r};}
-  }
-  return best||{gc:c0,gr:r0};
-}
-LOCS.forEach(l=>{const s=snapWalk(l.px,l.py);l.gc=s.gc;l.gr=s.gr;});
-
-// ─────────────────────────────────────────────────────────────
-// DROPDOWN
-// ─────────────────────────────────────────────────────────────
-const CAT_LABEL={akses:'🚪 Akses Masuk/Keluar',darurat:'🚑 Gawat Darurat',pavilun:'🏥 Paviliun Rawat Inap',rawat:'🏢 Rawat Jalan',fasilitas:'⚙️ Fasilitas',parkir:'🅿️ Parkir',lain:'📍 Lainnya'};
-(function buildDD(){
-  const grp={};
-  LOCS.forEach(l=>(grp[l.cat]=grp[l.cat]||[]).push(l));
-  ['sel-s','sel-e'].forEach(sid=>{
-    const el=document.getElementById(sid);
-    el.innerHTML='<option value="">— Pilih lokasi —</option>';
-    Object.keys(CAT_LABEL).forEach(cat=>{
-      if(!grp[cat]) return;
-      const og=document.createElement('optgroup');
-      og.label=CAT_LABEL[cat];
-      grp[cat].forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.name;og.appendChild(o);});
-      el.appendChild(og);
-    });
-  });
-})();
-
-// ─────────────────────────────────────────────────────────────
-// CANVAS SETUP & DRAWING
-// ─────────────────────────────────────────────────────────────
-const CV=document.getElementById('cv');
-const CTX=CV.getContext('2d');
-let SC=1,OX=0,OY=0;
-
-function resize(){
-  const wrap=document.getElementById('mapwrap');
-  CV.width=wrap.clientWidth;
-  CV.height=wrap.clientHeight;
-  SC=Math.min(CV.width/LW,CV.height/LH);
-  OX=(CV.width-LW*SC)/2;
-  OY=(CV.height-LH*SC)/2;
-}
-
-// Koordinat transformasi
-const lx=x=>OX+x*SC;
-const ly=y=>OY+y*SC;
-const ls=s=>s*SC;
-
-function drawRR(x,y,w,h,r,fill,stroke,sw){
-  CTX.beginPath();
-  CTX.moveTo(lx(x+r),ly(y));
-  CTX.lineTo(lx(x+w-r),ly(y));
-  CTX.arcTo(lx(x+w),ly(y),lx(x+w),ly(y+r),ls(r));
-  CTX.lineTo(lx(x+w),ly(y+h-r));
-  CTX.arcTo(lx(x+w),ly(y+h),lx(x+w-r),ly(y+h),ls(r));
-  CTX.lineTo(lx(x+r),ly(y+h));
-  CTX.arcTo(lx(x),ly(y+h),lx(x),ly(y+h-r),ls(r));
-  CTX.lineTo(lx(x),ly(y+r));
-  CTX.arcTo(lx(x),ly(y),lx(x+r),ly(y),ls(r));
-  CTX.closePath();
-  if(fill){CTX.fillStyle=fill;CTX.fill();}
-  if(stroke){CTX.strokeStyle=stroke;CTX.lineWidth=ls(sw||1);CTX.stroke();}
-}
-
-function bldgLabel(b){
-  const lines=b.label.split('\n');
-  const bx=lx(b.x),by=ly(b.y),bw=ls(b.w),bh=ls(b.h);
-  const cx=bx+bw/2, cy=by+bh/2;
-  const maxFS=Math.min(ls(10.5), ls(b.w/(Math.max(...lines.map(l=>l.length))+.5)*1.8), ls(b.h/lines.length*.65));
-  const fs=Math.max(ls(3.2),maxFS);
-  if(fs<ls(3)) return;
-  CTX.save();
-  CTX.textAlign='center';CTX.textBaseline='middle';
-  CTX.font=`700 ${fs}px 'Plus Jakarta Sans',sans-serif`;
-  lines.forEach((line,i)=>{
-    const yy=cy+(i-(lines.length-1)/2)*(fs+ls(1));
-    CTX.fillStyle='rgba(255,255,255,.88)';
-    CTX.fillText(line,cx+ls(.35),yy+ls(.35));
-    CTX.fillStyle='rgba(0,0,0,.72)';
-    CTX.fillText(line,cx,yy);
-  });
-  CTX.restore();
-}
-
-function drawBuilding(b){
-  if(b.rot){
-    // Gambar dengan rotasi
-    const cx=lx(b.x+b.w/2),cy=ly(b.y+b.h/2);
-    const bw=ls(b.w),bh=ls(b.h);
-    CTX.save();
-    CTX.translate(cx,cy);CTX.rotate(b.rot);
-    CTX.fillStyle=b.color;
-    CTX.beginPath();
-    const r=ls(4);
-    CTX.roundRect(-bw/2,-bh/2,bw,bh,r);
-    CTX.fill();
-    CTX.strokeStyle='rgba(0,0,0,.2)';CTX.lineWidth=ls(.8);CTX.stroke();
-    // Label masjid khusus
-    CTX.fillStyle='rgba(255,255,255,.92)';
-    CTX.font=`bold ${ls(11)}px serif`;
-    CTX.textAlign='center';CTX.textBaseline='middle';
-    CTX.fillText('☪',0,-ls(12));
-    CTX.font=`700 ${ls(8.5)}px 'Plus Jakarta Sans',sans-serif`;
-    CTX.fillStyle='rgba(255,255,255,.9)';
-    CTX.fillText('MASJID',0,ls(6));
-    CTX.restore();
-    return;
-  }
-  drawRR(b.x,b.y,b.w,b.h,3,b.color,'rgba(0,0,0,.2)',.8);
-  bldgLabel(b);
-}
-
-function drawAllRoads(){
-  // Background luar kompleks
-  CTX.fillStyle=COL.outer;
-  CTX.fillRect(0,0,CV.width,CV.height);
-  // Background area kompleks
-  CTX.fillStyle='#bfcfdf';
-  CTX.fillRect(lx(0),ly(0),ls(LW),ls(LH));
-
-  ROADS.forEach(rd=>{
-    CTX.beginPath();
-    CTX.moveTo(lx(rd.pts[0]),ly(rd.pts[1]));
-    for(let i=2;i<rd.pts.length;i+=2) CTX.lineTo(lx(rd.pts[i]),ly(rd.pts[i+1]));
-    CTX.strokeStyle=COL.road;
-    CTX.lineWidth=ls(rd.w);
-    CTX.lineCap='round';CTX.lineJoin='round';
-    CTX.stroke();
-  });
-
-  // Garis tengah jalan utama kanan (Jl. Fatmawati)
-  CTX.save();
-  CTX.setLineDash([ls(8),ls(6)]);
-  CTX.strokeStyle='rgba(255,255,255,.4)';
-  CTX.lineWidth=ls(1.5);
-  CTX.beginPath();
-  CTX.moveTo(lx(700),ly(58));
-  CTX.lineTo(lx(700),ly(632));
-  CTX.stroke();
-  CTX.restore();
-
-  // Label Jl. Fatmawati (vertikal kanan)
-  CTX.save();
-  CTX.translate(lx(748),ly(340));
-  CTX.rotate(Math.PI/2);
-  CTX.fillStyle='rgba(255,255,255,.75)';
-  CTX.font=`600 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
-  CTX.textAlign='center';CTX.textBaseline='middle';
-  CTX.fillText('JL. FATMAWATI KOTA SEMARANG',0,0);
-  CTX.restore();
-
-  // Label Jalan Lingkar atas
-  CTX.fillStyle='rgba(30,50,90,.55)';
-  CTX.font=`600 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
-  CTX.textAlign='center';CTX.textBaseline='middle';
-  CTX.fillText('JALAN LINGKAR',lx(340),ly(58));
-
-  // Label SUNGAI (kiri, kanan atas)
-  CTX.fillStyle='rgba(59,130,246,.65)';
-  CTX.font=`600 ${ls(6)}px 'Plus Jakarta Sans',sans-serif`;
-  ['SUNGAI','SUNGAI','SUNGAI'].forEach((t,i)=>{
-    CTX.fillText(t,lx(150+i*230),ly(33));
-  });
-}
-
-function drawAccessBox(){
-  // MASUK — kotak hijau kanan bawah
-  const mx=lx(674),my=ly(558),mw=ls(42),mh=ls(74);
-  CTX.fillStyle='#15803d';
-  CTX.beginPath();CTX.roundRect(mx,my,mw,mh,ls(4));CTX.fill();
-  CTX.fillStyle='#fff';
-  CTX.font=`700 ${ls(8)}px 'Plus Jakarta Sans',sans-serif`;
-  CTX.textAlign='center';CTX.textBaseline='middle';
-  CTX.fillText('MASUK',mx+mw/2,my+mh/2);
-  // Panah merah
-  CTX.fillStyle='#dc2626';
-  const ax=mx+mw+ls(2);
-  CTX.beginPath();
-  CTX.moveTo(ax,my+mh/2-ls(6));
-  CTX.lineTo(ax,my+mh/2+ls(6));
-  CTX.lineTo(ax+ls(9),my+mh/2);
-  CTX.closePath();CTX.fill();
-
-  // KELUAR — kotak merah kanan tengah
-  const ex=lx(674),ey=ly(395),ew=ls(42),eh=ls(37);
-  CTX.fillStyle='#dc2626';
-  CTX.beginPath();CTX.roundRect(ex,ey,ew,eh,ls(4));CTX.fill();
-  CTX.fillStyle='#fff';
-  CTX.font=`700 ${ls(8)}px 'Plus Jakarta Sans',sans-serif`;
-  CTX.textAlign='center';CTX.textBaseline='middle';
-  CTX.fillText('KELUAR',ex+ew/2,ey+eh/2);
-  // Lingkaran ikon keluar
-  CTX.strokeStyle='#fff';CTX.lineWidth=ls(2);
-  CTX.beginPath();CTX.arc(ex+ew/2,ey-ls(16),ls(11),0,Math.PI*2);CTX.stroke();
-  CTX.fillStyle='#15803d';
-  CTX.beginPath();CTX.arc(ex+ew/2,ey-ls(16),ls(7),0,Math.PI*2);CTX.fill();
-}
-
-function drawCompass(){
-  const cx=lx(760),cy=ly(48),r=ls(19);
-  CTX.save();
-  CTX.fillStyle='rgba(255,255,255,.9)';
-  CTX.beginPath();CTX.arc(cx,cy,r,0,Math.PI*2);CTX.fill();
-  CTX.strokeStyle='#cbd5e1';CTX.lineWidth=ls(.8);CTX.stroke();
-  ['U','S','B','T'].forEach((d,i)=>{
-    const a=i*Math.PI/2-Math.PI/2;
-    CTX.fillStyle=d==='U'?'#dc2626':'#475569';
-    CTX.font=`700 ${ls(d==='U'?9:7.5)}px Plus Jakarta Sans`;
-    CTX.textAlign='center';CTX.textBaseline='middle';
-    CTX.fillText(d,cx+Math.cos(a)*(r-ls(6)),cy+Math.sin(a)*(r-ls(6)));
-  });
-  CTX.restore();
-}
-
-// ── NAV overlay ──
-let _vis=null,_path=null;
-
-function drawVisited(){
-  if(!_vis) return;
-  CTX.save();
-  CTX.fillStyle='rgba(14,165,233,.13)';
-  _vis.forEach(k=>{
-    const c=k%GC,r=Math.floor(k/GC);
-    CTX.fillRect(lx(c*CW_G),ly(r*CH_G),ls(CW_G),ls(CH_G));
-  });
-  CTX.restore();
-}
-
-function drawPath(){
-  if(!_path||_path.length<2) return;
-  CTX.save();
-  CTX.strokeStyle='#0ea5e9';
-  CTX.lineWidth=ls(4.5);
-  CTX.lineJoin='round';CTX.lineCap='round';
-  CTX.shadowColor='rgba(14,165,233,.45)';
-  CTX.shadowBlur=ls(5);
-  CTX.beginPath();
-  _path.forEach(([gc,gr],i)=>{
-    const x=lx(c2px(gc)),y=ly(r2py(gr));
-    i===0?CTX.moveTo(x,y):CTX.lineTo(x,y);
-  });
-  CTX.stroke();
-  CTX.shadowBlur=0;
-  CTX.fillStyle='#0284c7';
-  _path.forEach(([gc,gr],i)=>{
-    if(i%9!==5) return;
-    CTX.beginPath();CTX.arc(lx(c2px(gc)),ly(r2py(gr)),ls(2.2),0,Math.PI*2);CTX.fill();
-  });
-  CTX.restore();
-}
-
-function drawMarkers(){
-  [startLoc,endLoc].forEach((loc,i)=>{
-    if(!loc) return;
-    const x=lx(c2px(loc.gc)),y=ly(r2py(loc.gr));
-    const col=i===0?'#2563eb':'#ef4444';
-    // Glow
-    const g=CTX.createRadialGradient(x,y,0,x,y,ls(20));
-    g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');
-    CTX.fillStyle=g;
-    CTX.beginPath();CTX.arc(x,y,ls(20),0,Math.PI*2);CTX.fill();
-    // Pin
-    CTX.fillStyle=col;
-    CTX.beginPath();CTX.arc(x,y,ls(7.5),0,Math.PI*2);CTX.fill();
-    CTX.strokeStyle='#fff';CTX.lineWidth=ls(2);CTX.stroke();
-    CTX.fillStyle='#fff';
-    CTX.font=`bold ${ls(6.5)}px monospace`;
-    CTX.textAlign='center';CTX.textBaseline='middle';
-    CTX.fillText(i===0?'A':'B',x,y+ls(.5));
-  });
-}
-
-function redraw(){
-  CTX.clearRect(0,0,CV.width,CV.height);
-  drawAllRoads();
-  BLDG.forEach(b=>drawBuilding(b));
-  drawAccessBox();
-  drawCompass();
-  drawVisited();
-  drawPath();
-  drawMarkers();
-}
-
-// ─────────────────────────────────────────────────────────────
-// A* PATHFINDING
-// ─────────────────────────────────────────────────────────────
-function astar(sc0,sr0,ec,er){
-  const H=(c,r)=>Math.abs(c-ec)+Math.abs(r-er);
-  const gC=new Map(),par=new Map(),closed=new Set();
-  gC.set(GK(sc0,sr0),0);
-  const open=[[H(sc0,sr0),sc0,sr0]];
-  const vis=[];let found=false;
-  const DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
-  while(open.length){
-    open.sort((a,b)=>a[0]-b[0]);
-    const[,c,r]=open.shift();
-    const k=GK(c,r);
-    if(closed.has(k)) continue;
-    closed.add(k);vis.push([c,r]);
-    if(c===ec&&r===er){found=true;break;}
-    for(const[dr,dc] of DIRS){
-      const nr=r+dr,nc=c+dc;
-      if(nr<0||nr>=GR||nc<0||nc>=GC) continue;
-      if(!NAV[GK(nc,nr)]) continue;
-      const nk=GK(nc,nr);
-      if(closed.has(nk)) continue;
-      const ng=(gC.get(k)||0)+1;
-      if(ng<(gC.get(nk)||Infinity)){
-        gC.set(nk,ng);par.set(nk,[c,r]);
-        open.push([ng+H(nc,nr),nc,nr]);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Navigasi RSD Wongsonegoro Semarang</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f0f4f8;
+        --paper: #fff;
+        --ink: #0f172a;
+        --ink2: #475569;
+        --ink3: #94a3b8;
+        --border: #e2e8f0;
+        --red: #dc2626;
+        --green: #16a34a;
+        --blue: #2563eb;
+        --path: #0ea5e9;
       }
-    }
-  }
-  if(!found) return{vis,path:null};
-  const path=[];let[c,r]=[ec,er];
-  while(!(c===sc0&&r===sr0)){path.unshift([c,r]);[c,r]=par.get(GK(c,r));}
-  path.unshift([sc0,sr0]);
-  return{vis,path};
-}
-
-// ─────────────────────────────────────────────────────────────
-// ANIMASI & UI
-// ─────────────────────────────────────────────────────────────
-let timers=[];
-function clearTimers(){timers.forEach(clearTimeout);timers=[];}
-
-function animateFind(vis,path){
-  const vset=new Set();let i=0;
-  function sv(){
-    const batch=Math.max(1,Math.floor(vis.length/70));
-    for(let b=0;b<batch&&i<vis.length;b++,i++) vset.add(GK(vis[i][0],vis[i][1]));
-    _vis=vset;redraw();
-    if(i<vis.length){timers.push(setTimeout(sv,4));}
-    else{
-      if(path){
-        let pi=0;
-        function sp(){
-          _path=path.slice(0,pi);redraw();
-          if(pi<path.length){pi++;timers.push(setTimeout(sp,10));}
-          else{_path=path;redraw();setInfo(false,'✅ Jalur ditemukan! Ikuti garis biru.');}
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .topbar {
+        background: var(--paper);
+        border-bottom: 3px solid var(--red);
+        height: 52px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .brand-ico {
+        width: 32px;
+        height: 32px;
+        background: var(--red);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .brand-name {
+        font-weight: 800;
+        font-size: 0.85rem;
+        line-height: 1.25;
+      }
+      .brand-sub {
+        font-size: 0.55rem;
+        color: var(--ink3);
+      }
+      .layout {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      .sidebar {
+        width: 255px;
+        flex-shrink: 0;
+        background: var(--paper);
+        border-right: 1px solid var(--border);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: auto;
+      }
+      .s-sec {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .s-ttl {
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink3);
+        padding-bottom: 3px;
+        border-bottom: 1px solid var(--border);
+      }
+      .sel-lbl {
+        font-size: 0.66rem;
+        font-weight: 600;
+        color: var(--ink2);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .dot-s {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #2563eb;
+        flex-shrink: 0;
+      }
+      .dot-e {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ef4444;
+        flex-shrink: 0;
+      }
+      select {
+        width: 100%;
+        padding: 7px 26px 7px 9px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+      }
+      select:focus {
+        outline: none;
+        border-color: var(--blue);
+      }
+      .preview {
+        background: #f8fafc;
+        border: 1.5px solid var(--border);
+        border-radius: 7px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .prev-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.68rem;
+      }
+      .prev-val {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .prev-empty {
+        color: var(--ink3);
+        font-style: italic;
+      }
+      .btn-go {
+        padding: 10px;
+        background: var(--red);
+        border: none;
+        color: #fff;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 7px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.22);
+      }
+      .btn-go:hover:not(:disabled) {
+        background: #b91c1c;
+        transform: translateY(-1px);
+      }
+      .btn-go:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .btn-rst {
+        padding: 6px;
+        background: transparent;
+        border: 1.5px solid #cbd5e1;
+        color: var(--ink2);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 0.68rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      .btn-rst:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+      .result {
+        background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+        border: 1.5px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 10px;
+        display: none;
+      }
+      .result.show {
+        display: block;
+      }
+      .res-ttl {
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: var(--blue);
+        margin-bottom: 6px;
+      }
+      .res-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.65rem;
+        color: var(--ink2);
+        margin-top: 3px;
+      }
+      .res-row b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .res-row b.g {
+        color: var(--green);
+      }
+      .steps {
+        background: #f8fafc;
+        border: 1.5px solid var(--border);
+        border-radius: 7px;
+        padding: 9px;
+        display: none;
+        max-height: 160px;
+        overflow-y: auto;
+      }
+      .steps.show {
+        display: block;
+      }
+      .steps-ttl {
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: var(--ink3);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 5px;
+      }
+      .step {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        font-size: 0.65rem;
+        color: var(--ink2);
+        padding: 3px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .step:last-child {
+        border-bottom: none;
+      }
+      .step-n {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-size: 0.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .step-n.last {
+        background: var(--red);
+      }
+      .leg-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+      }
+      .leg {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.56rem;
+        color: var(--ink2);
+      }
+      .lsw {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .content {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        gap: 8px;
+      }
+      .infobar {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-size: 0.65rem;
+        color: var(--ink2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .idot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ink3);
+        flex-shrink: 0;
+      }
+      .idot.on {
+        background: var(--path);
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
         }
-        sp();
-      } else setInfo(false,'❌ Jalur tidak ditemukan.');
-    }
-  }
-  sv();
-}
+        50% {
+          opacity: 0.2;
+        }
+      }
+      .map-wrap {
+        flex: 1;
+        background: #8fa4b8;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        overflow: hidden;
+        position: relative;
+      }
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .map-credit {
+        position: absolute;
+        bottom: 5px;
+        right: 7px;
+        font-size: 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        padding: 2px 5px;
+        border-radius: 3px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-ico">✚</div>
+        <div>
+          <div class="brand-name">RSD K.R.M.T. Wongsonegoro</div>
+          <div class="brand-sub">Sistem Navigasi • Kota Semarang</div>
+        </div>
+      </div>
+      <div
+        style="
+          font-size: 0.6rem;
+          color: var(--ink3);
+          font-family: &quot;DM Mono&quot;, monospace;
+        "
+      >
+        Jl. Fatmawati No.1 · Tembalang · Semarang
+      </div>
+    </div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="s-sec">
+          <div class="s-ttl">📍 Pilih Rute</div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div class="sel-lbl">
+              <div class="dot-s"></div>
+              Lokasi Awal
+            </div>
+            <select id="sel-s" onchange="onSel()">
+              <option value="">— Pilih lokasi —</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div class="sel-lbl">
+              <div class="dot-e"></div>
+              Lokasi Tujuan
+            </div>
+            <select id="sel-e" onchange="onSel()">
+              <option value="">— Pilih lokasi —</option>
+            </select>
+          </div>
+        </div>
+        <div class="preview">
+          <div class="prev-row">
+            <span>🔵</span
+            ><span id="pv-s"
+              ><span class="prev-empty">Belum dipilih</span></span
+            >
+          </div>
+          <div style="width: 100%; height: 1px; background: #e2e8f0"></div>
+          <div class="prev-row">
+            <span>🔴</span
+            ><span id="pv-e"
+              ><span class="prev-empty">Belum dipilih</span></span
+            >
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <button class="btn-go" id="btn-go" onclick="findPath()" disabled>
+            🧭 TEMUKAN JALUR
+          </button>
+          <button class="btn-rst" onclick="resetAll()">↺ Reset</button>
+        </div>
+        <div class="result" id="result">
+          <div class="res-ttl">✅ Jalur Ditemukan</div>
+          <div class="res-row">
+            <span>Estimasi jarak</span><b id="r-dist">—</b>
+          </div>
+          <div class="res-row">
+            <span>Estimasi waktu</span><b class="g" id="r-time">—</b>
+          </div>
+          <div class="res-row"><span>Langkah</span><b id="r-steps">—</b></div>
+        </div>
+        <div class="steps" id="steps-box">
+          <div class="steps-ttl">🗺️ Petunjuk Arah</div>
+          <div id="steps-list"></div>
+        </div>
+        <div class="s-sec">
+          <div class="s-ttl">🎨 Keterangan</div>
+          <div class="leg-grid">
+            <div class="leg">
+              <div class="lsw" style="background: #dc2626"></div>
+              IGD / IBS / ICU
+            </div>
+            <div class="leg">
+              <div class="lsw" style="background: #16a34a"></div>
+              Paviliun / Hijau
+            </div>
+            <div class="leg">
+              <div class="lsw" style="background: #ea580c"></div>
+              Rawat Jalan
+            </div>
+            <div class="leg">
+              <div class="lsw" style="background: #ca8a04"></div>
+              Fasilitas
+            </div>
+            <div class="leg">
+              <div
+                class="lsw"
+                style="background: rgba(251, 146, 60, 0.5)"
+              ></div>
+              Area Parkir
+            </div>
+            <div class="leg">
+              <div class="lsw" style="background: #15803d"></div>
+              Masjid
+            </div>
+            <div class="leg">
+              <div class="lsw" style="background: #0ea5e9"></div>
+              Jalur Navigasi
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="infobar">
+          <div class="idot" id="idot"></div>
+          <span id="itext"
+            >Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".</span
+          >
+        </div>
+        <div class="map-wrap" id="mapwrap">
+          <canvas id="cv"></canvas>
+          <div class="map-credit">RSD K.R.M.T. Wongsonegoro · Semarang</div>
+        </div>
+      </div>
+    </div>
 
-const DNAME={'-1,0':'Utara','1,0':'Selatan','0,-1':'Barat','0,1':'Timur'};
-function genSteps(path,sL,eL){
-  if(!path||path.length<2) return[];
-  const st=[];
-  st.push({text:'Mulai dari '+sL.name.replace(/^[^\s]+\s/,''),first:true});
-  let prev=null,dist=0;
-  for(let i=1;i<path.length;i++){
-    const dr=path[i][1]-path[i-1][1],dc=path[i][0]-path[i-1][0];
-    const dk=`${dr},${dc}`;
-    if(prev!==dk){if(prev&&dist) st.push({text:`Lurus ±${Math.round(dist*3.5)} m ke ${DNAME[prev]||'-'}`});dist=0;prev=dk;}
-    dist++;
-  }
-  if(dist&&prev) st.push({text:`Lurus ±${Math.round(dist*3.5)} m ke ${DNAME[prev]||'-'}`});
-  st.push({text:'Tiba di '+eL.name.replace(/^[^\s]+\s/,''),last:true});
-  return st;
-}
+    <script>
+      // ═══════════════════════════════════════════════════════════════
+      // Sistem koordinat logis: 800 × 680 px
+      // Bangunan & jalan digambar langsung ke canvas (bukan grid sel)
+      // sesuai proporsi gambar denah asli.
+      //
+      // Layout gambar asli (dari kiri ke kanan, atas ke bawah):
+      //  UTARA = atas | Jl.Fatmawati = kanan | MASUK = kanan bawah
+      //
+      // Jalan internal membentuk grid tidak seragam sesuai aslinya.
+      // Setiap bangunan punya ukuran unik sesuai gambar.
+      // ═══════════════════════════════════════════════════════════════
 
-let startLoc=null,endLoc=null;
+      // Ukuran canvas logis
+      const LW = 800,
+        LH = 700;
 
-function onSel(){
-  const sv=document.getElementById('sel-s').value;
-  const ev=document.getElementById('sel-e').value;
-  startLoc=sv?LOC_BY_ID[sv]:null;
-  endLoc=ev?LOC_BY_ID[ev]:null;
-  document.getElementById('pv-s').innerHTML=startLoc?`<span class="prev-val">${startLoc.name}</span>`:'<span class="prev-empty">Belum dipilih</span>';
-  document.getElementById('pv-e').innerHTML=endLoc?`<span class="prev-val">${endLoc.name}</span>`:'<span class="prev-empty">Belum dipilih</span>';
-  document.getElementById('btn-go').disabled=!(startLoc&&endLoc);
-  document.getElementById('result').classList.remove('show');
-  document.getElementById('steps-box').classList.remove('show');
-  clearTimers();_vis=null;_path=null;redraw();
-  if(startLoc&&endLoc) setInfo(false,'Klik "Temukan Jalur" untuk memulai navigasi.');
-}
+      // Navigasi grid (sel kecil ~5px logis)
+      const GC = 160,
+        GR = 136;
+      const CW_G = LW / GC,
+        CH_G = LH / GR; // ~5px per sel
 
-function findPath(){
-  if(!startLoc||!endLoc) return;
-  if(startLoc.id===endLoc.id){setInfo(false,'⚠️ Pilih lokasi berbeda!');return;}
-  clearTimers();_vis=null;_path=null;
-  setInfo(true,'Menghitung jalur…');
-  document.getElementById('result').classList.remove('show');
-  document.getElementById('steps-box').classList.remove('show');
-  const res=astar(startLoc.gc,startLoc.gr,endLoc.gc,endLoc.gr);
-  if(res.path){
-    const plen=res.path.length;
-    const dist=Math.round(plen*3.5);
-    const secs=Math.round(dist);
-    const tstr=secs<60?secs+' detik':Math.floor(secs/60)+'m '+Math.round(secs%60)+'d';
-    document.getElementById('r-dist').textContent='~'+dist+' m';
-    document.getElementById('r-time').textContent=tstr;
-    document.getElementById('r-steps').textContent=plen+' langkah';
-    document.getElementById('result').classList.add('show');
-    const st=genSteps(res.path,startLoc,endLoc);
-    document.getElementById('steps-list').innerHTML=st.map((s,i)=>`<div class="step"><div class="step-n${s.last?' last':''}">${s.first?'▶':s.last?'★':i}</div><div>${s.text}</div></div>`).join('');
-    document.getElementById('steps-box').classList.add('show');
-    animateFind(res.vis,res.path);
-  } else setInfo(false,'❌ Jalur tidak ditemukan.');
-}
+      const NAV = new Uint8Array(GC * GR); // 0=tembok, 1=jalan
+      const GK = (c, r) => r * GC + c;
 
-function resetAll(){
-  clearTimers();startLoc=null;endLoc=null;_vis=null;_path=null;
-  ['sel-s','sel-e'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('pv-s').innerHTML='<span class="prev-empty">Belum dipilih</span>';
-  document.getElementById('pv-e').innerHTML='<span class="prev-empty">Belum dipilih</span>';
-  document.getElementById('btn-go').disabled=true;
-  document.getElementById('result').classList.remove('show');
-  document.getElementById('steps-box').classList.remove('show');
-  setInfo(false,'Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".');
-  redraw();
-}
+      // ── Warna bangunan ──
+      const COL = {
+        road: "#d5e0ee",
+        outer: "#7a90a4",
+        parkir: "rgba(251,146,60,.33)",
+        red: "#dc2626",
+        green: "#16a34a",
+        org: "#ea580c",
+        yel: "#ca8a04",
+        mosq: "#15803d",
+        gray: "#6b7280",
+        teal: "#0d9488",
+        lapangan: "rgba(134,239,172,.45)",
+      };
 
-function setInfo(on,msg){
-  document.getElementById('idot').className='idot'+(on?' on':'');
-  document.getElementById('itext').textContent=msg;
-}
+      // ─────────────────────────────────────────────────────────────
+      // BANGUNAN — {x,y,w,h,label,color,rot?}
+      // Koordinat pixel logis, diukur dari gambar asli
+      // Bangunan berbeda-beda ukuran sesuai aslinya
+      // ─────────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────────────────────
+      // LAYOUT SESUAI DENAH ASLI RSD WONGSONEGORO
+      // Canvas logis 800×700. UTARA=atas, Jl.Fatmawati=kanan
+      // Jalan lingkar = y:55 (atas), y:620 (bawah)
+      // Jl. Fatmawati (vertikal) = x:710–760
+      // Jalan dalam kompleks membentuk grid sesuai denah
+      // ─────────────────────────────────────────────────────────────
+      const BLDG = [
+        // ══ AREA PARKIR KANAN ATAS (di luar pagar, sebelah Jl.Fatmawati) ══
+        { x:620, y:12,  w:80,  h:55,  label:'AREA\nPARKIR', color:COL.parkir },
+        { x:620, y:75,  w:80,  h:55,  label:'AREA\nPARKIR', color:COL.parkir },
 
-window.addEventListener('resize',()=>{resize();redraw();});
-resize();
-redraw();
-</script>
-</body>
+        // ══ JALAN LINGKAR ATAS — label digambar di drawAllRoads ══
+
+        // ══ BARIS ATAS DALAM KOMPLEKS ══
+        // Area Parkir utara (baris pertama dalam pagar)
+        { x:12,  y:65,  w:200, h:50,  label:'AREA PARKIR',  color:COL.parkir },
+        // Gedung Gizi
+        { x:218, y:65,  w:65,  h:50,  label:'GEDUNG\nGIZI', color:COL.yel },
+        // Area Parkir tengah atas
+        { x:289, y:65,  w:165, h:50,  label:'AREA PARKIR',  color:COL.parkir },
+        // Area Parkir kanan dalam (besar)
+        { x:460, y:65,  w:145, h:50,  label:'AREA PARKIR',  color:COL.parkir },
+
+        // ══ KOLOM KIRI — bangunan kecil fasilitas (dari atas ke bawah) ══
+        { x:12,  y:125, w:50,  h:38,  label:'IPAL',         color:COL.yel },
+        { x:12,  y:170, w:50,  h:38,  label:'K3',           color:COL.yel },
+        { x:12,  y:215, w:50,  h:45,  label:'GD. ASET\n& POOL', color:COL.yel },
+
+        // ══ KOLOM KE-2 (x~70) ══
+        { x:68,  y:125, w:65,  h:38,  label:'SIMRS',        color:COL.yel },
+        { x:68,  y:170, w:65,  h:38,  label:'KANTIN',       color:COL.yel },
+        { x:68,  y:215, w:65,  h:40,  label:'LAUNDRY',      color:COL.yel },
+
+        // ══ UNIT KANKER TERPADU — hijau besar kiri ══
+        { x:12,  y:270, w:120, h:95,  label:'UNIT\nKANKER\nTERPADU', color:COL.green },
+
+        // ══ POLI TB & GEDUNG ARJUNA — kiri bawah ══
+        { x:12,  y:373, w:65,  h:38,  label:'POLI TB',      color:COL.red },
+        { x:12,  y:418, w:120, h:65,  label:'GEDUNG\nARJUNA', color:COL.red },
+
+        // ══ GEDUNG NAKULA, SADEWA, BANOWATI (x~140) ══
+        { x:140, y:270, w:65,  h:45,  label:'GEDUNG\nNAKULA',  color:COL.org },
+        { x:140, y:322, w:65,  h:45,  label:'GEDUNG\nSADEWA',  color:COL.org },
+        { x:140, y:374, w:65,  h:45,  label:'GEDUNG\nBANOWATI',color:COL.org },
+
+        // ══ KOLOM KE-3 (x~140, atas) ══
+        { x:140, y:125, w:60,  h:38,  label:'SMF',          color:COL.yel },
+        { x:140, y:170, w:60,  h:38,  label:'SIMRS\n(lama)', color:COL.yel },
+
+        // ══ GEDUNG YUDISTIRA, BIMA, ARIMBI (x~210) ══
+        { x:210, y:170, w:65,  h:45,  label:'GEDUNG\nYUDISTIRA', color:COL.org },
+        { x:210, y:222, w:65,  h:45,  label:'GEDUNG\nBIMA',     color:COL.org },
+        { x:210, y:274, w:65,  h:45,  label:'GEDUNG\nARIMBI',   color:COL.org },
+
+        // ══ GD. REHAB MEDIK & KOMITE MEDIK (x~210, atas) ══
+        { x:210, y:125, w:78,  h:38,  label:'GD. REHAB\nMEDIK', color:COL.yel },
+
+        // ══ SMF kolom 4 ══
+        { x:294, y:125, w:60,  h:38,  label:'KOMITE\nMEDIK', color:COL.yel },
+
+        // ══ LAPANGAN UPACARA (tengah atas) ══
+        { x:360, y:125, w:95,  h:80,  label:'LAPANGAN\nUPACARA', color:COL.lapangan },
+
+        // ══ PAVILIUN GATOTKACA — hijau besar kanan atas ══
+        { x:460, y:122, w:145, h:148, label:'PAVILIUN\nGATOTKACA', color:COL.green },
+
+        // ══ AREA PARKIR KANAN DALAM (vertikal, 4 blok) ══
+        { x:612, y:122, w:90,  h:75,  label:'AREA\nPARKIR', color:COL.parkir },
+        { x:612, y:204, w:90,  h:75,  label:'AREA\nPARKIR', color:COL.parkir },
+        { x:612, y:286, w:90,  h:75,  label:'AREA\nPARKIR', color:COL.parkir },
+        { x:612, y:368, w:90,  h:75,  label:'AREA\nPARKIR', color:COL.parkir },
+
+        // ══ PAVILIUN BISMA — hijau besar horizontal tengah ══
+        { x:210, y:326, w:240, h:105, label:'PAVILIUN BISMA', color:COL.green },
+
+        // ══ GEDUNG ABIMANYU & PRABU KRESNA (kanan Bisma) ══
+        { x:456, y:270, w:90,  h:50,  label:'GEDUNG\nABIMANYU',    color:COL.org },
+        { x:456, y:326, w:90,  h:50,  label:'GEDUNG PRABU\nKRESNA',color:COL.org },
+
+        // ══ PAVILIUN AMARTA — hijau kanan Bisma bawah ══
+        { x:456, y:382, w:148, h:88,  label:'PAVILIUN\nAMARTA',    color:COL.green },
+
+        // ══ LABORAT CENTRAL ══
+        { x:356, y:438, w:92,  h:38,  label:'LABORAT\nCENTRAL',    color:COL.org },
+
+        // ══ BARIS BAWAH KIRI ══
+        { x:12,  y:492, w:90,  h:55,  label:'KAMAR\nJENAZAH',      color:COL.gray },
+        { x:108, y:492, w:95,  h:55,  label:'AREA\nPARKIR',        color:COL.parkir },
+
+        // ══ IBS / ICU / RADIOLOGI — merah besar ══
+        { x:210, y:492, w:140, h:118, label:'IBS / ICU\nRADIOLOGI\nTERPADU', color:COL.red },
+
+        // ══ GEDUNG CSSD (kecil, kuning) ══
+        { x:356, y:492, w:60,  h:55,  label:'GEDUNG\nCSSD',        color:COL.yel },
+
+        // ══ GEDUNG BROTOJOYO (hijau, bawah CSSD) ══
+        { x:356, y:553, w:60,  h:55,  label:'GD.\nBROTOJOYO',      color:COL.green },
+
+        // ══ IGD — merah, kanan IBS ══
+        { x:422, y:492, w:182, h:118, label:'IGD',                  color:COL.red },
+
+        // ══ AREA PARKIR KANAN BAWAH ══
+        { x:612, y:450, w:90,  h:95,  label:'AREA\nPARKIR',        color:COL.parkir },
+
+        // ══ BARIS PALING BAWAH ══
+        { x:12,  y:555, w:190, h:40,  label:'AREA PARKIR',         color:COL.parkir },
+        { x:210, y:618, w:190, h:40,  label:'AREA PARKIR',         color:COL.parkir },
+        { x:406, y:618, w:75,  h:40,  label:'KOPERASI',            color:COL.green },
+        { x:12,  y:602, w:190, h:40,  label:'AREA PARKIR',         color:COL.parkir },
+
+        // ══ MASJID — hijau tua, kanan bawah, sedikit miring ══
+        { x:490, y:610, w:110, h:75,  label:'MASJID', color:COL.mosq, rot:-0.12 },
+      ];
+      // ─────────────────────────────────────────────────────────────
+      // JALAN — [{pts:[...], w}]
+      // Setiap jalan = polyline dengan lebar w
+      // ─────────────────────────────────────────────────────────────
+      const ROADS = [
+        // ══ JALAN LINGKAR LUAR ══
+        { pts:[12,  55, 605, 55],  w:14 }, // atas (Jalan Lingkar atas)
+        { pts:[12, 605, 605,605],  w:14 }, // bawah (Jalan Lingkar bawah)
+        { pts:[0,   55,   0, 605], w:16 }, // kiri
+        { pts:[710,   0, 710, 700],w:30 }, // Jl. Fatmawati (kanan)
+
+        // ══ JALAN DALAM SISI KANAN (antara kompleks & Jl.Fatmawati) ══
+        { pts:[605,  55, 605, 605], w:14 }, // jalan sisi kanan dalam
+
+        // ══ AREA PARKIR LUAR KANAN ATAS (di sebelah Jl.Fatmawati) ══
+        // dihubungkan via jalan kecil
+        { pts:[605, 55, 710, 55],   w:10 }, // sambungan atas ke Jl.Fatmawati
+        { pts:[605,135, 710,135],   w:10 }, // jalan parkir kanan atas atas
+
+        // ══ JALAN INTERNAL HORIZONTAL ══
+        { pts:[12,  120, 605, 120], w:10 }, // H1 – bawah baris atas
+        { pts:[12,  165, 605, 165], w:10 }, // H2
+        { pts:[12,  215, 605, 215], w:10 }, // H3
+        { pts:[12,  265, 605, 265], w:10 }, // H4
+        { pts:[12,  320, 605, 320], w:10 }, // H5
+        { pts:[12,  380, 605, 380], w:10 }, // H6
+        { pts:[12,  435, 605, 435], w:10 }, // H7
+        { pts:[12,  485, 605, 485], w:10 }, // H8 – atas area bawah
+        { pts:[12,  548, 605, 548], w:10 }, // H9 – bawah IBS/IGD
+        { pts:[12,  600, 605, 600], w:10 }, // H10 – jalan bawah
+
+        // ══ JALAN INTERNAL VERTIKAL ══
+        { pts:[65,   55,  65, 605], w:10 }, // V1
+        { pts:[140,  55, 140, 605], w:10 }, // V2
+        { pts:[210,  55, 210, 605], w:10 }, // V3
+        { pts:[360,  55, 360, 605], w:10 }, // V4
+        { pts:[460,  55, 460, 605], w:10 }, // V5
+        { pts:[612,  55, 612, 605], w:10 }, // V6 (tepi kanan dalam)
+
+        // ══ JALAN PINTU MASUK (kanan bawah) ══
+        { pts:[605, 548, 710, 548], w:16 }, // batas atas area masuk
+        { pts:[605, 605, 710, 605], w:16 }, // batas bawah area masuk
+        { pts:[710, 548, 710, 605], w:20 }, // sisi Jl.Fatmawati
+
+        // ══ JALAN PINTU KELUAR (kanan tengah) ══
+        { pts:[605, 380, 710, 380], w:16 }, // batas atas area keluar
+        { pts:[605, 438, 710, 438], w:16 }, // batas bawah area keluar
+        { pts:[710, 380, 710, 438], w:20 }, // sisi Jl.Fatmawati
+
+        // ══ JALAN KECIL INTERNAL TAMBAHAN ══
+        { pts:[360, 265, 460, 265], w:8  }, // antara Bisma & Gatotkaca
+        { pts:[360, 380, 460, 380], w:8  }, // antara Bisma & Amarta
+        { pts:[456, 265, 456, 380], w:8  }, // vertikal kanan Bisma
+
+        // ══ JALAN BAWAH KOPERASI/MASJID ══
+        { pts:[210, 610, 490, 610], w:10 }, // jalan depan koperasi
+      ];
+
+      // ─────────────────────────────────────────────────────────────
+      // Bangun NAV grid dari definisi jalan
+      // ─────────────────────────────────────────────────────────────
+      function px2c(x) {
+        return Math.min(GC - 1, Math.max(0, Math.floor(x / CW_G)));
+      }
+      function px2r(y) {
+        return Math.min(GR - 1, Math.max(0, Math.floor(y / CH_G)));
+      }
+      function c2px(c) {
+        return c * CW_G + CW_G / 2;
+      }
+      function r2py(r) {
+        return r * CH_G + CH_G / 2;
+      }
+
+      ROADS.forEach((rd) => {
+        const hw = rd.w / 2;
+        for (let i = 0; i < rd.pts.length - 2; i += 2) {
+          const x1 = rd.pts[i],
+            y1 = rd.pts[i + 1],
+            x2 = rd.pts[i + 2],
+            y2 = rd.pts[i + 3];
+          const c1 = px2c(Math.min(x1, x2) - hw - 1),
+            c2 = px2c(Math.max(x1, x2) + hw + 1);
+          const r1 = px2r(Math.min(y1, y2) - hw - 1),
+            r2 = px2r(Math.max(y1, y2) + hw + 1);
+          for (let r = r1; r <= r2; r++)
+            for (let c = c1; c <= c2; c++) NAV[GK(c, r)] = 1;
+        }
+      });
+      // Tandai interior bangunan sebagai tembok
+      BLDG.forEach((b) => {
+        const pad = 3;
+        const c1 = px2c(b.x + pad),
+          c2 = px2c(b.x + b.w - pad);
+        const r1 = px2r(b.y + pad),
+          r2 = px2r(b.y + b.h - pad);
+        for (let r = r1; r <= r2; r++)
+          for (let c = c1; c <= c2; c++) NAV[GK(c, r)] = 0;
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // LOKASI NAVIGASI
+      // ─────────────────────────────────────────────────────────────
+      const LOCS = [
+        // ── Akses ──
+        { id:'masuk',    name:'🚪 Pintu Masuk (Jl. Fatmawati)',  cat:'akses',    px:660, py:576 },
+        { id:'keluar',   name:'🚪 Pintu Keluar (Jl. Fatmawati)', cat:'akses',    px:660, py:409 },
+        // ── Darurat ──
+        { id:'igd',      name:'🚑 IGD',                          cat:'darurat',  px:513, py:530 },
+        { id:'ibs',      name:'🔴 IBS / ICU / Radiologi',        cat:'darurat',  px:280, py:540 },
+        // ── Paviliun ──
+        { id:'bisma',    name:'🏥 Paviliun Bisma',               cat:'pavilun',  px:330, py:378 },
+        { id:'amarta',   name:'🏥 Paviliun Amarta',              cat:'pavilun',  px:530, py:426 },
+        { id:'gatot',    name:'🏥 Paviliun Gatotkaca',           cat:'pavilun',  px:532, py:196 },
+        { id:'kanker',   name:'🏥 Unit Kanker Terpadu',          cat:'pavilun',  px:72,  py:317 },
+        { id:'broto',    name:'🏥 Gedung Brotojoyo',             cat:'pavilun',  px:386, py:580 },
+        // ── Rawat Jalan ──
+        { id:'arjuna',   name:'🏢 Gedung Arjuna',                cat:'rawat',    px:72,  py:450 },
+        { id:'nakula',   name:'🏢 Gedung Nakula',                cat:'rawat',    px:172, py:292 },
+        { id:'sadewa',   name:'🏢 Gedung Sadewa',                cat:'rawat',    px:172, py:344 },
+        { id:'banowati', name:'🏢 Gedung Banowati',              cat:'rawat',    px:172, py:396 },
+        { id:'yudistira',name:'🏢 Gedung Yudistira',             cat:'rawat',    px:242, py:192 },
+        { id:'bima',     name:'🏢 Gedung Bima',                  cat:'rawat',    px:242, py:244 },
+        { id:'arimbi',   name:'🏢 Gedung Arimbi',                cat:'rawat',    px:242, py:296 },
+        { id:'abimanyu', name:'🏢 Gedung Abimanyu',              cat:'rawat',    px:501, py:295 },
+        { id:'prabu',    name:'🏢 Gedung Prabu Kresna',          cat:'rawat',    px:501, py:351 },
+        { id:'lab',      name:'🔬 Laborat Central',              cat:'rawat',    px:402, py:457 },
+        { id:'cssd',     name:'🧪 Gedung CSSD',                  cat:'rawat',    px:386, py:519 },
+        { id:'rehab',    name:'🏃 Rehabilitasi Medik',           cat:'rawat',    px:249, py:143 },
+        // ── Fasilitas ──
+        { id:'ipal',     name:'🌊 IPAL',                         cat:'fasilitas',px:37,  py:143 },
+        { id:'k3',       name:'🦺 K3',                           cat:'fasilitas',px:37,  py:188 },
+        { id:'aset',     name:'🏢 Gedung Aset & Pool',           cat:'fasilitas',px:37,  py:237 },
+        { id:'simrs',    name:'💻 SIMRS',                        cat:'fasilitas',px:100, py:143 },
+        { id:'kantin',   name:'🍴 Kantin',                       cat:'fasilitas',px:100, py:188 },
+        { id:'laundry',  name:'👕 Laundry',                      cat:'fasilitas',px:100, py:235 },
+        { id:'gizi',     name:'🍽️ Gedung Gizi',                  cat:'fasilitas',px:250, py:89  },
+        { id:'smf',      name:'💊 SMF',                          cat:'fasilitas',px:170, py:143 },
+        { id:'komite',   name:'📋 Komite Medik',                 cat:'fasilitas',px:324, py:143 },
+        { id:'lapangan', name:'🟩 Lapangan Upacara',             cat:'fasilitas',px:407, py:165 },
+        // ── Lainnya ──
+        { id:'masjid',   name:'🕌 Masjid',                       cat:'lain',     px:545, py:648 },
+        { id:'koperasi', name:'🛒 Koperasi',                     cat:'lain',     px:443, py:638 },
+        { id:'jenazah',  name:'⚰️ Kamar Jenazah',                cat:'lain',     px:57,  py:519 },
+        // ── Parkir ──
+        { id:'parkir1',  name:'🅿️ Parkir Utara',                 cat:'parkir',   px:106, py:89  },
+        { id:'parkir2',  name:'🅿️ Parkir Timur Atas',            cat:'parkir',   px:657, py:102 },
+        { id:'parkir3',  name:'🅿️ Parkir Timur Tengah',          cat:'parkir',   px:657, py:323 },
+        { id:'parkir4',  name:'🅿️ Parkir Selatan',               cat:'parkir',   px:106, py:580 },
+      ];
+      const LOC_BY_ID = {};
+      LOCS.forEach((l) => (LOC_BY_ID[l.id] = l));
+
+      function snapWalk(px, py) {
+        const c0 = px2c(px),
+          r0 = px2r(py);
+        if (NAV[GK(c0, r0)]) return { gc: c0, gr: r0 };
+        let best = null,
+          bd = 99999;
+        for (let dr = -15; dr <= 15; dr++)
+          for (let dc = -15; dc <= 15; dc++) {
+            const r = r0 + dr,
+              c = c0 + dc;
+            if (r < 0 || r >= GR || c < 0 || c >= GC) continue;
+            if (!NAV[GK(c, r)]) continue;
+            const d = dr * dr + dc * dc;
+            if (d < bd) {
+              bd = d;
+              best = { gc: c, gr: r };
+            }
+          }
+        return best || { gc: c0, gr: r0 };
+      }
+      LOCS.forEach((l) => {
+        const s = snapWalk(l.px, l.py);
+        l.gc = s.gc;
+        l.gr = s.gr;
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // DROPDOWN
+      // ─────────────────────────────────────────────────────────────
+      const CAT_LABEL = {
+        akses: "🚪 Akses Masuk/Keluar",
+        darurat: "🚑 Gawat Darurat",
+        pavilun: "🏥 Paviliun Rawat Inap",
+        rawat: "🏢 Rawat Jalan",
+        fasilitas: "⚙️ Fasilitas",
+        parkir: "🅿️ Parkir",
+        lain: "📍 Lainnya",
+      };
+      (function buildDD() {
+        const grp = {};
+        LOCS.forEach((l) => (grp[l.cat] = grp[l.cat] || []).push(l));
+        ["sel-s", "sel-e"].forEach((sid) => {
+          const el = document.getElementById(sid);
+          el.innerHTML = '<option value="">— Pilih lokasi —</option>';
+          Object.keys(CAT_LABEL).forEach((cat) => {
+            if (!grp[cat]) return;
+            const og = document.createElement("optgroup");
+            og.label = CAT_LABEL[cat];
+            grp[cat].forEach((l) => {
+              const o = document.createElement("option");
+              o.value = l.id;
+              o.textContent = l.name;
+              og.appendChild(o);
+            });
+            el.appendChild(og);
+          });
+        });
+      })();
+
+      // ─────────────────────────────────────────────────────────────
+      // CANVAS SETUP & DRAWING
+      // ─────────────────────────────────────────────────────────────
+      const CV = document.getElementById("cv");
+      const CTX = CV.getContext("2d");
+      let SC = 1,
+        OX = 0,
+        OY = 0;
+
+      function resize() {
+        const wrap = document.getElementById("mapwrap");
+        CV.width = wrap.clientWidth;
+        CV.height = wrap.clientHeight;
+        SC = Math.min(CV.width / LW, CV.height / LH);
+        OX = (CV.width - LW * SC) / 2;
+        OY = (CV.height - LH * SC) / 2;
+      }
+
+      // Koordinat transformasi
+      const lx = (x) => OX + x * SC;
+      const ly = (y) => OY + y * SC;
+      const ls = (s) => s * SC;
+
+      function drawRR(x, y, w, h, r, fill, stroke, sw) {
+        CTX.beginPath();
+        CTX.moveTo(lx(x + r), ly(y));
+        CTX.lineTo(lx(x + w - r), ly(y));
+        CTX.arcTo(lx(x + w), ly(y), lx(x + w), ly(y + r), ls(r));
+        CTX.lineTo(lx(x + w), ly(y + h - r));
+        CTX.arcTo(lx(x + w), ly(y + h), lx(x + w - r), ly(y + h), ls(r));
+        CTX.lineTo(lx(x + r), ly(y + h));
+        CTX.arcTo(lx(x), ly(y + h), lx(x), ly(y + h - r), ls(r));
+        CTX.lineTo(lx(x), ly(y + r));
+        CTX.arcTo(lx(x), ly(y), lx(x + r), ly(y), ls(r));
+        CTX.closePath();
+        if (fill) {
+          CTX.fillStyle = fill;
+          CTX.fill();
+        }
+        if (stroke) {
+          CTX.strokeStyle = stroke;
+          CTX.lineWidth = ls(sw || 1);
+          CTX.stroke();
+        }
+      }
+
+      function bldgLabel(b) {
+        const lines = b.label.split("\n");
+        const bx = lx(b.x),
+          by = ly(b.y),
+          bw = ls(b.w),
+          bh = ls(b.h);
+        const cx = bx + bw / 2,
+          cy = by + bh / 2;
+        const maxFS = Math.min(
+          ls(10.5),
+          ls((b.w / (Math.max(...lines.map((l) => l.length)) + 0.5)) * 1.8),
+          ls((b.h / lines.length) * 0.65),
+        );
+        const fs = Math.max(ls(3.2), maxFS);
+        if (fs < ls(3)) return;
+        CTX.save();
+        CTX.textAlign = "center";
+        CTX.textBaseline = "middle";
+        CTX.font = `700 ${fs}px 'Plus Jakarta Sans',sans-serif`;
+        lines.forEach((line, i) => {
+          const yy = cy + (i - (lines.length - 1) / 2) * (fs + ls(1));
+          CTX.fillStyle = "rgba(255,255,255,.88)";
+          CTX.fillText(line, cx + ls(0.35), yy + ls(0.35));
+          CTX.fillStyle = "rgba(0,0,0,.72)";
+          CTX.fillText(line, cx, yy);
+        });
+        CTX.restore();
+      }
+
+      function drawBuilding(b) {
+        if (b.rot) {
+          // Gambar dengan rotasi
+          const cx = lx(b.x + b.w / 2),
+            cy = ly(b.y + b.h / 2);
+          const bw = ls(b.w),
+            bh = ls(b.h);
+          CTX.save();
+          CTX.translate(cx, cy);
+          CTX.rotate(b.rot);
+          CTX.fillStyle = b.color;
+          CTX.beginPath();
+          const r = ls(4);
+          CTX.roundRect(-bw / 2, -bh / 2, bw, bh, r);
+          CTX.fill();
+          CTX.strokeStyle = "rgba(0,0,0,.2)";
+          CTX.lineWidth = ls(0.8);
+          CTX.stroke();
+          // Label masjid khusus
+          CTX.fillStyle = "rgba(255,255,255,.92)";
+          CTX.font = `bold ${ls(11)}px serif`;
+          CTX.textAlign = "center";
+          CTX.textBaseline = "middle";
+          CTX.fillText("☪", 0, -ls(12));
+          CTX.font = `700 ${ls(8.5)}px 'Plus Jakarta Sans',sans-serif`;
+          CTX.fillStyle = "rgba(255,255,255,.9)";
+          CTX.fillText("MASJID", 0, ls(6));
+          CTX.restore();
+          return;
+        }
+        drawRR(b.x, b.y, b.w, b.h, 3, b.color, "rgba(0,0,0,.2)", 0.8);
+        bldgLabel(b);
+      }
+
+      function drawAllRoads() {
+        // Background luar kompleks
+        CTX.fillStyle = COL.outer;
+        CTX.fillRect(0, 0, CV.width, CV.height);
+        // Background area kompleks
+        CTX.fillStyle = "#bfcfdf";
+        CTX.fillRect(lx(0), ly(0), ls(LW), ls(LH));
+
+        ROADS.forEach((rd) => {
+          CTX.beginPath();
+          CTX.moveTo(lx(rd.pts[0]), ly(rd.pts[1]));
+          for (let i = 2; i < rd.pts.length; i += 2)
+            CTX.lineTo(lx(rd.pts[i]), ly(rd.pts[i + 1]));
+          CTX.strokeStyle = COL.road;
+          CTX.lineWidth = ls(rd.w);
+          CTX.lineCap = "round";
+          CTX.lineJoin = "round";
+          CTX.stroke();
+        });
+
+        // Garis tengah jalan utama kanan (Jl. Fatmawati)
+        // Garis tengah Jl. Fatmawati
+        CTX.save();
+        CTX.setLineDash([ls(8), ls(6)]);
+        CTX.strokeStyle = "rgba(255,255,255,.4)";
+        CTX.lineWidth = ls(1.5);
+        CTX.beginPath();
+        CTX.moveTo(lx(710), ly(0));
+        CTX.lineTo(lx(710), ly(700));
+        CTX.stroke();
+        CTX.restore();
+
+        // Label Jl. Fatmawati (vertikal kanan)
+        CTX.save();
+        CTX.translate(lx(755), ly(350));
+        CTX.rotate(Math.PI / 2);
+        CTX.fillStyle = "rgba(255,255,255,.8)";
+        CTX.font = `700 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
+        CTX.textAlign = "center";
+        CTX.textBaseline = "middle";
+        CTX.fillText("JL. FATMAWATI KOTA SEMARANG", 0, 0);
+        CTX.restore();
+
+        // Label Jalan Lingkar atas
+        CTX.fillStyle = "rgba(30,50,90,.65)";
+        CTX.font = `700 ${ls(7)}px 'Plus Jakarta Sans',sans-serif`;
+        CTX.textAlign = "center";
+        CTX.textBaseline = "middle";
+        CTX.fillText("JALAN LINGKAR", lx(308), ly(55));
+
+        // Label SUNGAI di atas jalan lingkar
+        CTX.fillStyle = "rgba(59,130,246,.75)";
+        CTX.font = `600 ${ls(6)}px 'Plus Jakarta Sans',sans-serif`;
+        ["SUNGAI", "SUNGAI", "SUNGAI"].forEach((t, i) => {
+          CTX.fillText(t, lx(100 + i * 200), ly(28));
+        });
+      }
+
+      function drawAccessBox() {
+        // MASUK — kotak hijau, di area masuk kanan bawah (antara x:605 dan x:710, y:548-605)
+        const mx = lx(612),
+          my = ly(552),
+          mw = ls(88),
+          mh = ls(48);
+        CTX.fillStyle = "#15803d";
+        CTX.beginPath();
+        CTX.roundRect(mx, my, mw, mh, ls(4));
+        CTX.fill();
+        CTX.fillStyle = "#fff";
+        CTX.font = `700 ${ls(9)}px 'Plus Jakarta Sans',sans-serif`;
+        CTX.textAlign = "center";
+        CTX.textBaseline = "middle";
+        CTX.fillText("MASUK", mx + mw / 2, my + mh / 2);
+        // Panah merah ke kanan
+        CTX.fillStyle = "#dc2626";
+        const ax = mx + mw + ls(2);
+        CTX.beginPath();
+        CTX.moveTo(ax, my + mh / 2 - ls(7));
+        CTX.lineTo(ax, my + mh / 2 + ls(7));
+        CTX.lineTo(ax + ls(10), my + mh / 2);
+        CTX.closePath();
+        CTX.fill();
+
+        // KELUAR — kotak merah, di area keluar kanan tengah (antara x:605 dan x:710, y:380-438)
+        const ex = lx(612),
+          ey = ly(388),
+          ew = ls(88),
+          eh = ls(44);
+        CTX.fillStyle = "#dc2626";
+        CTX.beginPath();
+        CTX.roundRect(ex, ey, ew, eh, ls(4));
+        CTX.fill();
+        CTX.fillStyle = "#fff";
+        CTX.font = `700 ${ls(9)}px 'Plus Jakarta Sans',sans-serif`;
+        CTX.textAlign = "center";
+        CTX.textBaseline = "middle";
+        CTX.fillText("KELUAR", ex + ew / 2, ey + eh / 2);
+        // Panah keluar (ke kanan)
+        CTX.fillStyle = "#fff";
+        const bx = ex + ew + ls(2);
+        CTX.beginPath();
+        CTX.moveTo(bx, ey + eh / 2 - ls(7));
+        CTX.lineTo(bx, ey + eh / 2 + ls(7));
+        CTX.lineTo(bx + ls(10), ey + eh / 2);
+        CTX.closePath();
+        CTX.fill();
+      }
+
+      function drawCompass() {
+        const cx = lx(757),
+          cy = ly(35),
+          r = ls(22);
+        CTX.save();
+        CTX.fillStyle = "rgba(255,255,255,.9)";
+        CTX.beginPath();
+        CTX.arc(cx, cy, r, 0, Math.PI * 2);
+        CTX.fill();
+        CTX.strokeStyle = "#cbd5e1";
+        CTX.lineWidth = ls(0.8);
+        CTX.stroke();
+        ["U", "S", "B", "T"].forEach((d, i) => {
+          const a = (i * Math.PI) / 2 - Math.PI / 2;
+          CTX.fillStyle = d === "U" ? "#dc2626" : "#475569";
+          CTX.font = `700 ${ls(d === "U" ? 9 : 7.5)}px Plus Jakarta Sans`;
+          CTX.textAlign = "center";
+          CTX.textBaseline = "middle";
+          CTX.fillText(
+            d,
+            cx + Math.cos(a) * (r - ls(6)),
+            cy + Math.sin(a) * (r - ls(6)),
+          );
+        });
+        CTX.restore();
+      }
+
+      // ── NAV overlay ──
+      let _vis = null,
+        _path = null;
+
+      function drawVisited() {
+        if (!_vis) return;
+        CTX.save();
+        CTX.fillStyle = "rgba(14,165,233,.13)";
+        _vis.forEach((k) => {
+          const c = k % GC,
+            r = Math.floor(k / GC);
+          CTX.fillRect(lx(c * CW_G), ly(r * CH_G), ls(CW_G), ls(CH_G));
+        });
+        CTX.restore();
+      }
+
+      function drawPath() {
+        if (!_path || _path.length < 2) return;
+        CTX.save();
+        CTX.strokeStyle = "#0ea5e9";
+        CTX.lineWidth = ls(4.5);
+        CTX.lineJoin = "round";
+        CTX.lineCap = "round";
+        CTX.shadowColor = "rgba(14,165,233,.45)";
+        CTX.shadowBlur = ls(5);
+        CTX.beginPath();
+        _path.forEach(([gc, gr], i) => {
+          const x = lx(c2px(gc)),
+            y = ly(r2py(gr));
+          i === 0 ? CTX.moveTo(x, y) : CTX.lineTo(x, y);
+        });
+        CTX.stroke();
+        CTX.shadowBlur = 0;
+        CTX.fillStyle = "#0284c7";
+        _path.forEach(([gc, gr], i) => {
+          if (i % 9 !== 5) return;
+          CTX.beginPath();
+          CTX.arc(lx(c2px(gc)), ly(r2py(gr)), ls(2.2), 0, Math.PI * 2);
+          CTX.fill();
+        });
+        CTX.restore();
+      }
+
+      function drawMarkers() {
+        [startLoc, endLoc].forEach((loc, i) => {
+          if (!loc) return;
+          const x = lx(c2px(loc.gc)),
+            y = ly(r2py(loc.gr));
+          const col = i === 0 ? "#2563eb" : "#ef4444";
+          // Glow
+          const g = CTX.createRadialGradient(x, y, 0, x, y, ls(20));
+          g.addColorStop(0, col + "55");
+          g.addColorStop(1, col + "00");
+          CTX.fillStyle = g;
+          CTX.beginPath();
+          CTX.arc(x, y, ls(20), 0, Math.PI * 2);
+          CTX.fill();
+          // Pin
+          CTX.fillStyle = col;
+          CTX.beginPath();
+          CTX.arc(x, y, ls(7.5), 0, Math.PI * 2);
+          CTX.fill();
+          CTX.strokeStyle = "#fff";
+          CTX.lineWidth = ls(2);
+          CTX.stroke();
+          CTX.fillStyle = "#fff";
+          CTX.font = `bold ${ls(6.5)}px monospace`;
+          CTX.textAlign = "center";
+          CTX.textBaseline = "middle";
+          CTX.fillText(i === 0 ? "A" : "B", x, y + ls(0.5));
+        });
+      }
+
+      function redraw() {
+        CTX.clearRect(0, 0, CV.width, CV.height);
+        drawAllRoads();
+        BLDG.forEach((b) => drawBuilding(b));
+        drawAccessBox();
+        drawCompass();
+        drawVisited();
+        drawPath();
+        drawMarkers();
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // A* PATHFINDING
+      // ─────────────────────────────────────────────────────────────
+      function astar(sc0, sr0, ec, er) {
+        const H = (c, r) => Math.abs(c - ec) + Math.abs(r - er);
+        const gC = new Map(),
+          par = new Map(),
+          closed = new Set();
+        gC.set(GK(sc0, sr0), 0);
+        const open = [[H(sc0, sr0), sc0, sr0]];
+        const vis = [];
+        let found = false;
+        const DIRS = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        while (open.length) {
+          open.sort((a, b) => a[0] - b[0]);
+          const [, c, r] = open.shift();
+          const k = GK(c, r);
+          if (closed.has(k)) continue;
+          closed.add(k);
+          vis.push([c, r]);
+          if (c === ec && r === er) {
+            found = true;
+            break;
+          }
+          for (const [dr, dc] of DIRS) {
+            const nr = r + dr,
+              nc = c + dc;
+            if (nr < 0 || nr >= GR || nc < 0 || nc >= GC) continue;
+            if (!NAV[GK(nc, nr)]) continue;
+            const nk = GK(nc, nr);
+            if (closed.has(nk)) continue;
+            const ng = (gC.get(k) || 0) + 1;
+            if (ng < (gC.get(nk) || Infinity)) {
+              gC.set(nk, ng);
+              par.set(nk, [c, r]);
+              open.push([ng + H(nc, nr), nc, nr]);
+            }
+          }
+        }
+        if (!found) return { vis, path: null };
+        const path = [];
+        let [c, r] = [ec, er];
+        while (!(c === sc0 && r === sr0)) {
+          path.unshift([c, r]);
+          [c, r] = par.get(GK(c, r));
+        }
+        path.unshift([sc0, sr0]);
+        return { vis, path };
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // ANIMASI & UI
+      // ─────────────────────────────────────────────────────────────
+      let timers = [];
+      function clearTimers() {
+        timers.forEach(clearTimeout);
+        timers = [];
+      }
+
+      function animateFind(vis, path) {
+        const vset = new Set();
+        let i = 0;
+        function sv() {
+          const batch = Math.max(1, Math.floor(vis.length / 70));
+          for (let b = 0; b < batch && i < vis.length; b++, i++)
+            vset.add(GK(vis[i][0], vis[i][1]));
+          _vis = vset;
+          redraw();
+          if (i < vis.length) {
+            timers.push(setTimeout(sv, 4));
+          } else {
+            if (path) {
+              let pi = 0;
+              function sp() {
+                _path = path.slice(0, pi);
+                redraw();
+                if (pi < path.length) {
+                  pi++;
+                  timers.push(setTimeout(sp, 10));
+                } else {
+                  _path = path;
+                  redraw();
+                  setInfo(false, "✅ Jalur ditemukan! Ikuti garis biru.");
+                }
+              }
+              sp();
+            } else setInfo(false, "❌ Jalur tidak ditemukan.");
+          }
+        }
+        sv();
+      }
+
+      const DNAME = {
+        "-1,0": "Utara",
+        "1,0": "Selatan",
+        "0,-1": "Barat",
+        "0,1": "Timur",
+      };
+      function genSteps(path, sL, eL) {
+        if (!path || path.length < 2) return [];
+        const st = [];
+        st.push({
+          text: "Mulai dari " + sL.name.replace(/^[^\s]+\s/, ""),
+          first: true,
+        });
+        let prev = null,
+          dist = 0;
+        for (let i = 1; i < path.length; i++) {
+          const dr = path[i][1] - path[i - 1][1],
+            dc = path[i][0] - path[i - 1][0];
+          const dk = `${dr},${dc}`;
+          if (prev !== dk) {
+            if (prev && dist)
+              st.push({
+                text: `Lurus ±${Math.round(dist * 3.5)} m ke ${DNAME[prev] || "-"}`,
+              });
+            dist = 0;
+            prev = dk;
+          }
+          dist++;
+        }
+        if (dist && prev)
+          st.push({
+            text: `Lurus ±${Math.round(dist * 3.5)} m ke ${DNAME[prev] || "-"}`,
+          });
+        st.push({
+          text: "Tiba di " + eL.name.replace(/^[^\s]+\s/, ""),
+          last: true,
+        });
+        return st;
+      }
+
+      let startLoc = null,
+        endLoc = null;
+
+      function onSel() {
+        const sv = document.getElementById("sel-s").value;
+        const ev = document.getElementById("sel-e").value;
+        startLoc = sv ? LOC_BY_ID[sv] : null;
+        endLoc = ev ? LOC_BY_ID[ev] : null;
+        document.getElementById("pv-s").innerHTML = startLoc
+          ? `<span class="prev-val">${startLoc.name}</span>`
+          : '<span class="prev-empty">Belum dipilih</span>';
+        document.getElementById("pv-e").innerHTML = endLoc
+          ? `<span class="prev-val">${endLoc.name}</span>`
+          : '<span class="prev-empty">Belum dipilih</span>';
+        document.getElementById("btn-go").disabled = !(startLoc && endLoc);
+        document.getElementById("result").classList.remove("show");
+        document.getElementById("steps-box").classList.remove("show");
+        clearTimers();
+        _vis = null;
+        _path = null;
+        redraw();
+        if (startLoc && endLoc)
+          setInfo(false, 'Klik "Temukan Jalur" untuk memulai navigasi.');
+      }
+
+      function findPath() {
+        if (!startLoc || !endLoc) return;
+        if (startLoc.id === endLoc.id) {
+          setInfo(false, "⚠️ Pilih lokasi berbeda!");
+          return;
+        }
+        clearTimers();
+        _vis = null;
+        _path = null;
+        setInfo(true, "Menghitung jalur…");
+        document.getElementById("result").classList.remove("show");
+        document.getElementById("steps-box").classList.remove("show");
+        const res = astar(startLoc.gc, startLoc.gr, endLoc.gc, endLoc.gr);
+        if (res.path) {
+          const plen = res.path.length;
+          const dist = Math.round(plen * 3.5);
+          const secs = Math.round(dist);
+          const tstr =
+            secs < 60
+              ? secs + " detik"
+              : Math.floor(secs / 60) + "m " + Math.round(secs % 60) + "d";
+          document.getElementById("r-dist").textContent = "~" + dist + " m";
+          document.getElementById("r-time").textContent = tstr;
+          document.getElementById("r-steps").textContent = plen + " langkah";
+          document.getElementById("result").classList.add("show");
+          const st = genSteps(res.path, startLoc, endLoc);
+          document.getElementById("steps-list").innerHTML = st
+            .map(
+              (s, i) =>
+                `<div class="step"><div class="step-n${s.last ? " last" : ""}">${s.first ? "▶" : s.last ? "★" : i}</div><div>${s.text}</div></div>`,
+            )
+            .join("");
+          document.getElementById("steps-box").classList.add("show");
+          animateFind(res.vis, res.path);
+        } else setInfo(false, "❌ Jalur tidak ditemukan.");
+      }
+
+      function resetAll() {
+        clearTimers();
+        startLoc = null;
+        endLoc = null;
+        _vis = null;
+        _path = null;
+        ["sel-s", "sel-e"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+        document.getElementById("pv-s").innerHTML =
+          '<span class="prev-empty">Belum dipilih</span>';
+        document.getElementById("pv-e").innerHTML =
+          '<span class="prev-empty">Belum dipilih</span>';
+        document.getElementById("btn-go").disabled = true;
+        document.getElementById("result").classList.remove("show");
+        document.getElementById("steps-box").classList.remove("show");
+        setInfo(
+          false,
+          'Pilih lokasi awal dan tujuan, lalu klik "Temukan Jalur".',
+        );
+        redraw();
+      }
+
+      function setInfo(on, msg) {
+        document.getElementById("idot").className = "idot" + (on ? " on" : "");
+        document.getElementById("itext").textContent = msg;
+      }
+
+      window.addEventListener("resize", () => {
+        resize();
+        redraw();
+      });
+      resize();
+      redraw();
+    </script>
+  </body>
 </html>
