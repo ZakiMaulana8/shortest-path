@@ -1196,55 +1196,99 @@
       }
 
       // ─────────────────────────────────────────────────────────────
-      // A* PATHFINDING
+      // A* PATHFINDING – implementasi sesuai teori algoritma A*
+      // f(n) = g(n) + h(n)
+      //   g(n) = biaya aktual dari start ke node n
+      //   h(n) = estimasi Euclidean distance dari n ke goal
+      // Mendukung 8 arah (termasuk diagonal) agar jalur lebih alami
       // ─────────────────────────────────────────────────────────────
+      // Konversi: 1 sel grid = CW_G logis-px. Canvas logis 800px ≈ 200m
+      // → 1 logis-px ≈ 0.25 m → 1 sel ≈ CW_G * 0.25 m
+      const M_PER_PX = 200 / LW; // meter per logical-pixel
+      const M_PER_CELL = CW_G * M_PER_PX; // meter per grid cell (horizontal)
+
       function astar(sc0, sr0, ec, er) {
-        const H = (c, r) => Math.abs(c - ec) + Math.abs(r - er);
-        const gC = new Map(),
-          par = new Map(),
-          closed = new Set();
-        gC.set(GK(sc0, sr0), 0);
+        // Heuristik: jarak Euclidean dalam satuan sel
+        const H = (c, r) =>
+          Math.sqrt((c - ec) * (c - ec) + (r - er) * (r - er));
+
+        // g: biaya dari start; par: pelacak jalur
+        const gScore = new Map();
+        const par = new Map();
+        const closed = new Set();
+        const startKey = GK(sc0, sr0);
+        gScore.set(startKey, 0);
+
+        // Open list: [fScore, col, row]
+        // Menggunakan min-heap sederhana (array yang selalu di-sort)
         const open = [[H(sc0, sr0), sc0, sr0]];
+        const inOpen = new Map([[startKey, H(sc0, sr0)]]);
+
         const vis = [];
         let found = false;
+
+        // 8 arah: [dc, dr, cost] — diagonal cost = √2
         const DIRS = [
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1],
+          [ 1,  0, 1],       // Timur
+          [-1,  0, 1],       // Barat
+          [ 0,  1, 1],       // Selatan
+          [ 0, -1, 1],       // Utara
+          [ 1,  1, Math.SQRT2], // Tenggara
+          [-1,  1, Math.SQRT2], // Barat-daya
+          [ 1, -1, Math.SQRT2], // Timur-laut
+          [-1, -1, Math.SQRT2], // Barat-laut
         ];
+
         while (open.length) {
+          // Ambil node dengan f-score terkecil
           open.sort((a, b) => a[0] - b[0]);
           const [, c, r] = open.shift();
           const k = GK(c, r);
           if (closed.has(k)) continue;
           closed.add(k);
           vis.push([c, r]);
+
+          // Cek goal
           if (c === ec && r === er) {
             found = true;
             break;
           }
-          for (const [dr, dc] of DIRS) {
-            const nr = r + dr,
-              nc = c + dc;
+
+          const gCur = gScore.get(k) || 0;
+
+          for (const [dc, dr, stepCost] of DIRS) {
+            const nc = c + dc,
+                  nr = r + dr;
             if (nr < 0 || nr >= GR || nc < 0 || nc >= GC) continue;
-            if (!NAV[GK(nc, nr)]) continue;
             const nk = GK(nc, nr);
             if (closed.has(nk)) continue;
-            const ng = (gC.get(k) || 0) + 1;
-            if (ng < (gC.get(nk) || Infinity)) {
-              gC.set(nk, ng);
+            // Cek apakah seluruh sel dapat dilewati
+            if (!NAV[nk]) continue;
+            // Cegah memotong sudut bangunan saat diagonal
+            if (dc !== 0 && dr !== 0) {
+              if (!NAV[GK(c + dc, r)] || !NAV[GK(c, r + dr)]) continue;
+            }
+            const tentativeG = gCur + stepCost;
+            const prevG = gScore.has(nk) ? gScore.get(nk) : Infinity;
+            if (tentativeG < prevG) {
+              gScore.set(nk, tentativeG);
               par.set(nk, [c, r]);
-              open.push([ng + H(nc, nr), nc, nr]);
+              const f = tentativeG + H(nc, nr);
+              open.push([f, nc, nr]);
             }
           }
         }
+
         if (!found) return { vis, path: null };
+
+        // Rekonstruksi jalur dari goal ke start
         const path = [];
         let [c, r] = [ec, er];
         while (!(c === sc0 && r === sr0)) {
           path.unshift([c, r]);
-          [c, r] = par.get(GK(c, r));
+          const prev = par.get(GK(c, r));
+          if (!prev) break; // keamanan
+          [c, r] = prev;
         }
         path.unshift([sc0, sr0]);
         return { vis, path };
@@ -1292,11 +1336,18 @@
         sv();
       }
 
+      // DNAME: key = "dc,dr" (delta col, delta row sesuai sistem koordinat canvas)
+      // dc positif = ke kanan (Timur), dc negatif = ke kiri (Barat)
+      // dr positif = ke bawah (Selatan), dr negatif = ke atas (Utara)
       const DNAME = {
-        "-1,0": "Utara",
-        "1,0": "Selatan",
-        "0,-1": "Barat",
-        "0,1": "Timur",
+        "1,0":   "→ Timur",
+        "-1,0":  "← Barat",
+        "0,1":   "↓ Selatan",
+        "0,-1":  "↑ Utara",
+        "1,1":   "↘ Tenggara",
+        "-1,1":  "↙ Barat-daya",
+        "1,-1":  "↗ Timur-laut",
+        "-1,-1": "↖ Barat-laut",
       };
       function genSteps(path, sL, eL) {
         if (!path || path.length < 2) return [];
@@ -1305,26 +1356,31 @@
           text: "Mulai dari " + sL.name.replace(/^[^\s]+\s/, ""),
           first: true,
         });
-        let prev = null,
-          dist = 0;
+        let prevDk = null,
+          segCells = 0;
         for (let i = 1; i < path.length; i++) {
-          const dr = path[i][1] - path[i - 1][1],
-            dc = path[i][0] - path[i - 1][0];
-          const dk = `${dr},${dc}`;
-          if (prev !== dk) {
-            if (prev && dist)
-              st.push({
-                text: `Lurus ±${Math.round(dist * 3.5)} m ke ${DNAME[prev] || "-"}`,
-              });
-            dist = 0;
-            prev = dk;
+          const dc = path[i][0] - path[i - 1][0]; // delta col
+          const dr = path[i][1] - path[i - 1][1]; // delta row
+          // Normalisasi ke arah unit (-1,0,1)
+          const ndc = dc === 0 ? 0 : dc / Math.abs(dc);
+          const ndr = dr === 0 ? 0 : dr / Math.abs(dr);
+          const dk = `${ndc},${ndr}`;
+          const stepDist = (dc !== 0 && dr !== 0) ? Math.SQRT2 : 1;
+          if (prevDk !== dk) {
+            if (prevDk && segCells > 0) {
+              const segM = Math.round(segCells * M_PER_CELL);
+              st.push({ text: `${DNAME[prevDk] || prevDk} sejauh ±${segM} m` });
+            }
+            segCells = stepDist;
+            prevDk = dk;
+          } else {
+            segCells += stepDist;
           }
-          dist++;
         }
-        if (dist && prev)
-          st.push({
-            text: `Lurus ±${Math.round(dist * 3.5)} m ke ${DNAME[prev] || "-"}`,
-          });
+        if (prevDk && segCells > 0) {
+          const segM = Math.round(segCells * M_PER_CELL);
+          st.push({ text: `${DNAME[prevDk] || prevDk} sejauh ±${segM} m` });
+        }
         st.push({
           text: "Tiba di " + eL.name.replace(/^[^\s]+\s/, ""),
           last: true,
@@ -1371,16 +1427,24 @@
         document.getElementById("steps-box").classList.remove("show");
         const res = astar(startLoc.gc, startLoc.gr, endLoc.gc, endLoc.gr);
         if (res.path) {
-          const plen = res.path.length;
-          const dist = Math.round(plen * 3.5);
-          const secs = Math.round(dist);
+          // Hitung jarak nyata: setiap langkah diagonal = √2 sel, lurus = 1 sel
+          let totalCells = 0;
+          for (let i = 1; i < res.path.length; i++) {
+            const dc = Math.abs(res.path[i][0] - res.path[i-1][0]);
+            const dr = Math.abs(res.path[i][1] - res.path[i-1][1]);
+            totalCells += (dc !== 0 && dr !== 0) ? Math.SQRT2 : 1;
+          }
+          // Konversi ke meter menggunakan M_PER_CELL
+          const distM = Math.round(totalCells * M_PER_CELL);
+          // Kecepatan pejalan kaki rata-rata 1.2 m/s
+          const secs = Math.round(distM / 1.2);
           const tstr =
             secs < 60
               ? secs + " detik"
-              : Math.floor(secs / 60) + "m " + Math.round(secs % 60) + "d";
-          document.getElementById("r-dist").textContent = "~" + dist + " m";
+              : Math.floor(secs / 60) + " mnt " + (secs % 60 > 0 ? (secs % 60) + " dtk" : "");
+          document.getElementById("r-dist").textContent = "~" + distM + " m";
           document.getElementById("r-time").textContent = tstr;
-          document.getElementById("r-steps").textContent = plen + " langkah";
+          document.getElementById("r-steps").textContent = res.path.length + " langkah";
           document.getElementById("result").classList.add("show");
           const st = genSteps(res.path, startLoc, endLoc);
           document.getElementById("steps-list").innerHTML = st
